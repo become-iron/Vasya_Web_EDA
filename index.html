@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--suppress CheckEmptyScriptTag, HtmlUnknownAttribute -->
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Vasily Web EDA</title>
+    <link rel="stylesheet" href="css/normalize.css">
+    <!--<link rel="stylesheet" href="css/font-awesome.min.css">-->
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="scripts/libs/jquery-3.2.1.min.js"></script>
+    <script src="scripts/libs/jquery-ui.js"></script>
+    <script src="scripts/libs/d3.min.js"></script>
+    <script src="scripts/components.js"></script>
+    <script src="scripts/workspace.js"></script>
+    <!--<script src="scripts/test.js"></script>-->
+</head>
+<body>
+    <div id="main-container">
+
+        <div id="left-side">
+            <div id="toolbar">
+                <div>Главное меню</div>
+            </div>
+            <div id="components-list">
+                Меню выбора компонентов
+                <div>
+                    <button id="clone_component_btn">Clone selected component</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="workspace-side">  <!--TEMP-->
+            <svg id="workspace" preserveAspectRatio="xMinYMin">
+                <defs>
+                    <pattern id="gridPattern" width="10" height="10" patternUnits="userSpaceOnUse">
+                        <path d="M 10 0 L 0 0 0 10" />
+                    </pattern>
+                </defs>
+
+                <rect id="background" width="100%" height="100%" fill="url(#gridPattern)" />
+
+                <!--TEMP-->
+                <rect id="blue-rect" class="component" width="30" height="40" fill="skyblue" x="10" y="20" />
+                <rect id="red-rect" class="component" width="20" height="50" fill="red" x="100" y="50" />
+            </svg>
+        </div>
+
+        <div id="right-side">
+            <div>Панель редактирования свойств</div>
+            <hr>
+            <div>Mouse X: <span id="mouse-x">0</span></div>
+            <div>Mouse Y: <span id="mouse-y">0</span></div>
+            <hr>
+            <div id="component-info">
+                <div>Selected component</div>
+                <div>id: <span id="component-id"></span></div>
+                <div>x: <span id="component-x"></span></div>
+                <div>y: <span id="component-y"></span></div>
+                <div>width: <span id="component-width"></span></div>
+                <div>height: <span id="component-height"></span></div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

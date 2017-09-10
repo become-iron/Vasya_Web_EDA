@@ -1,0 +1,84 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/*body {*/
+    /*height: 100%;*/
+/*}*/
+
+#main-container {
+    height: 100%;
+}
+
+#left-side {
+    float: left;
+    width: 15%;
+    height: 100%;
+}
+
+/*#left-side > * {*/
+    /*!*padding: 10px;*!*/
+    /*margin: 0;*/
+/*}*/
+
+#toolbar {
+    height: 10%;
+    width: 100%;
+    background-color: #d9ebf2;
+}
+
+#components-list {
+    height: 90%;
+    width: 100%;
+    background-color: #ffe3d1;
+}
+
+#workspace-side {
+    float: left;
+    width: 70%;
+    /*margin: 0 15% 0 15%;*/
+    height: 100%;
+    background-color: white;
+    overflow: hidden;
+    /*border-left: solid grey 1px;*/
+    /*border-right: solid grey 1px;*/
+}
+
+#right-side {
+    float: left;
+    width: 15%;
+    height: 100%;
+
+    background-color: #c5dabf;
+}
+
+#component-info {
+    visibility: hidden;
+}
+
+#gridPattern > path {
+    fill: none;
+    stroke: gray;
+    stroke-width: 0.5;
+}
+
+#vertical-axis, #horizontal-axis {
+    stroke: darkgray;
+    stroke-width: 0.7;
+}
+
+#workspace .component {
+    cursor: move;
+    position: absolute;
+}
+
+#workspace .component.selected {
+    stroke: black;
+    stroke-width: 2;
+    stroke-dasharray: 5;
+}
+
