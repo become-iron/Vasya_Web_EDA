@@ -76,9 +76,25 @@ html, body {
     position: absolute;
 }
 
-#workspace .component.selected {
-    stroke: black;
-    stroke-width: 2;
-    stroke-dasharray: 5;
+#workspace .component.selected * {
+    stroke: red;
+    /*stroke-width: 2;*/
+    /*stroke-dasharray: 5;*/
 }
 
+
+path, line {
+    fill: none;
+    stroke: black;
+    stroke-width: 1;
+}
+
+svg * {
+    pointer-events: all;
+}
+
+.hitbox {
+    fill: none !important;
+    stroke-width: 0 !important;
+    pointer-events: all;
+}
