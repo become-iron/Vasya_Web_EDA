@@ -147,11 +147,11 @@ $( document ).ready(function() {
             //     );
             // })
             // далее работа с компонентами на холсте
-            .find(".component").each(V.core.bind_events_to_components);
+            .find(".component").each(V.core.make_element_draggable);
 
         // отлавливание нажатий клавиш
-        $(window)
         // TODO разобраться, на что лучше вешать: window, document, html, что-то другое
+        $(window)
             .keydown(function (event) {
                 let key_code = event.which;
                 // Esc: снять выделение компонента
@@ -184,19 +184,16 @@ $( document ).ready(function() {
                     .attr("height", $workspace_side.height());
             });
 
+
         // по клику ЛКМ по пустой области скрыть описание компонента
         $("#background")
             .click(V.core.deactivate_element);
 
-    };
 
-
-    V.core.bind_events_to_components = function (i, item) {
-        /** Привязывает события к компонентам */
-        $(item)
+        V.core.$workspace_side
             // ЛКМ, показать информацию о компоненте
             // TODO посмотреть, можно ли улучшить
-            .mousedown(function (event) {
+            .on("mousedown", ".component", function () {
                 let $component_info = V.core.$element_info;
                 let setts = V.core.setts;
 
@@ -225,7 +222,13 @@ $( document ).ready(function() {
                 $("#component-y").text(y);
                 // $("#component-width").text(w);
                 // $("#component-height").text(h);
-            })
+            });
+    };
+
+
+    V.core.make_element_draggable = function (i, item) {
+        /** Привязывает события к компонентам */
+        $(item)
             // перетаскивание
             .draggable({
                 addClasses: false,
@@ -311,7 +314,7 @@ $( document ).ready(function() {
             .attr("id", new_id)
             .removeClass("selected")
             .appendTo(V.core.$workspace)
-            .each(V.core.bind_events_to_components);
+            .each(V.core.make_element_draggable);
         // разместить компонент в начале координат
         // TODO заменить на set_component_location
         V.core.shift_component_location($new_component, x, y);
