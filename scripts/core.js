@@ -17,9 +17,7 @@ $( document ).ready(function() {
         width: null,
         height: null,
 
-        active_element: null,  // id выделенного компонента
-        // снять выделение компонента
-
+        active_element_class: "active",  // класс, назначаемый выделенному компоненту
 
         // параметры viewBox (для отображения части холста)
         vb_origin_params: [],
@@ -27,37 +25,40 @@ $( document ).ready(function() {
 
     // координаты рабочей области - в реальные координаты
     V.core.to_real_x = (x) => x + V.core.setts.width / 2;
-    V.core.to_real_y = (y) => y + V.core.setts.height / 2;
+    V.core.to_real_y = (y) => -y - V.core.setts.height / 2;
     // реальные координаты - в координаты рабочей области
     V.core.to_ws_x = (x) => x - V.core.setts.width / 2;
     V.core.to_ws_y = (y) => V.core.setts.height / 2 - y;
 
+
+    V.core.active_element = null;  // id текущего выделенного элемента
     V.core.deactivate_element = () => {
-        $(V.core.setts.active_element).removeClass("selected");
-        V.core.setts.active_element = null;
+        $(V.core.active_element).removeClass(V.core.setts.active_element_class);
+        V.core.active_element = null;
         V.core.$element_info.css("visibility", "hidden");
     };
 
     V.core.$left_side = $("#left-side");
-    V.core.$workspace_side = $("#workspace-side");
+    V.core.$workspace_container = $("#workspace-side");
     V.core.$workspace = $("#workspace");
     V.core.$right_side = $("#right_side");
-    V.core.$element_info = $("#component-info");
+    V.core.$element_info = $("#element-info");
 
 
     V.core.setup_workspace = function () {
         /** Настройка рабочей области */
-        let $left_side = V.core.$left_side;
-        let $workspace_side = V.core.$workspace_side;
+        // let $left_side = V.core.$left_side;
+        let $workspace_container = V.core.$workspace_container;
         let $workspace = V.core.$workspace;
         // let $right_side = V.core.$right_side;
         // let $component_info = V.core.$component_info;
 
-        let setts = V.core.setts;
+        // let setts = V.core.setts;
 
-
-        setts.width = Math.ceil($workspace_side.width() / setts.step) * setts.step;
-        setts.height = Math.ceil($workspace_side.height() / setts.step) * setts.step;
+        // TODO или round?
+        let step = V.core.setts.step;
+        V.core.setts.width = Math.ceil($workspace_container.width() / step) * step;
+        V.core.setts.height = Math.ceil($workspace_container.height() / step) * step;
 
         // let viewBox = [
         //     (wsSetts.width - workspace_w) / 2,
@@ -74,30 +75,12 @@ $( document ).ready(function() {
 
         // установка размера и видимой области svg
         $workspace
-            .attr("width", setts.width)
-            .attr("height", setts.height)
+            .attr("width", V.core.setts.width)
+            .attr("height", V.core.setts.height)
         // .attr("viewBox", viewBox)  // TEMP
         ;
 
-        // установка осей
-        // TEMP
-        d3.select("#workspace")
-            .insert("line", ":first-child")  // на задний фон
-            .attr("id", "vertical-axis")
-            .attr("x1", setts.width / 2)
-            .attr("y1", 0)
-            .attr("x2", setts.width / 2)
-            .attr("y2", setts.height);
-        // <line id="vertical-axis" x1="1500" y1="0" x2="1500" y2="3000" />
-        d3.select("#workspace")
-            .insert("line", ":first-child")
-            .attr("id", "horizontal-axis")
-            .attr("x1", 0)
-            .attr("y1", setts.height / 2)
-            .attr("x2", setts.width)
-            .attr("y2", setts.height / 2);
-        // <line id="horizontal-axis" x1="0" y1="1500" x2="3000" y2="1500" />
-
+        V.core.set_axis();
 
         // рабочая область
         // TODO разобраться с эффективной выборкой элементов
@@ -105,13 +88,6 @@ $( document ).ready(function() {
         // отключение контекстного меню
             .contextmenu(function () {
                 return false;
-            })
-            // отображение положения курсора в координатах холста
-            .mousemove(function (event) {
-                let x = Math.round(V.core.to_ws_x(event.pageX - $left_side.width()));
-                let y = Math.round(V.core.to_ws_y(event.pageY));
-                $("#mouse-x").text(x);
-                $("#mouse-y").text(y);
             })
             // .bind("mousedown", function (event) {
             //     // лкм
@@ -147,12 +123,19 @@ $( document ).ready(function() {
             //     );
             // })
             // далее работа с компонентами на холсте
-            .find(".component").each(V.core.make_element_draggable);
+            .find(".component").each((i, item) => V.core.make_element_draggable(item));
+
+
+        // по клику ЛКМ по пустой области скрыть описание компонента
+        $("#background")
+            .click(V.core.deactivate_element);
 
         // отлавливание нажатий клавиш
         // TODO разобраться, на что лучше вешать: window, document, html, что-то другое
         $(window)
             .keydown(function (event) {
+                // console.log(event.which);
+
                 let key_code = event.which;
                 // Esc: снять выделение компонента
                 if (key_code === 27) {
@@ -160,8 +143,8 @@ $( document ).ready(function() {
                 }
                 // Delete: удалить выделенный компонент
                 else if (key_code === 46) {
-                    if (setts.active_element !== null) {
-                        $(setts.active_element).remove();
+                    if (V.core.active_element !== null) {
+                        $(V.core.active_element).remove();
                         V.core.deactivate_element();
                     }
                 }
@@ -171,63 +154,85 @@ $( document ).ready(function() {
                 //
                 //     }
                 // }
-                // else {
-                //     console.log(event.which);
-                // }
+                // TODO: перемещение активного элемента с помощью стрелок
+                // клавиша влево
+                else if (key_code === 37) {
+                    V.core.shift_element_location($(V.core.active_element), -V.core.setts.step, 0);
+                }
+                // клавиша вверх
+                else if (key_code === 38) {
+                    V.core.shift_element_location($(V.core.active_element), 0, V.core.setts.step);
+                }
+                // клавиша вправо
+                else if (key_code === 39) {
+                    V.core.shift_element_location($(V.core.active_element), V.core.setts.step, 0);
+                }
+                // клавиша вниз
+                else if (key_code === 40) {
+                    V.core.shift_element_location($(V.core.active_element), 0, -V.core.setts.step);
+                }
             })
             // изменение размера окна
             .resize(function () {
                 // TODO поправлять оси, центрировать рабочую область
+                let [width, height] = [$workspace_container.width(), $workspace_container.height()];
+                [V.core.setts.width, V.core.setts.height] = [width, height];
                 $workspace
                 // изменение размера рабочей области
-                    .attr("width", $workspace_side.width())
-                    .attr("height", $workspace_side.height());
+                    .attr("width", width)
+                    .attr("height", height);
+                V.core.set_axis();
             });
 
 
-        // по клику ЛКМ по пустой области скрыть описание компонента
-        $("#background")
-            .click(V.core.deactivate_element);
-
-
-        V.core.$workspace_side
+        V.core.$workspace_container
             // ЛКМ, показать информацию о компоненте
             // TODO посмотреть, можно ли улучшить
             .on("mousedown", ".component", function () {
-                let $component_info = V.core.$element_info;
-                let setts = V.core.setts;
+                // let $component_info = V.core.$element_info;
+                // let setts = V.core.setts;
 
-                $component_info.css("visibility", "visible");
                 // let [id, x, y, w, h] = ["id", "x", "y", "width", "height"].map( (p) => event.target.getAttribute(p) );
                 let $target = $(this);
                 let id = $target.attr("id");
                 // TODO неверный отсчет координат
                 let [x, y] = _.values($target.offset()).map(Math.round);
-                x = V.core.to_ws_x(x);
-                y = V.core.to_ws_x(y);
                 let active_element = "#" + id;
 
                 // проверка на повторный клик по компоненту
-                if (setts.active_element === active_element) return;
+                if (V.core.active_element === active_element) return;
 
-                if (setts.active_element !== null) {
-                    $(setts.active_element).removeClass("selected");
+                if (V.core.active_element !== null) {
+                    $(V.core.active_element).removeClass(V.core.setts.active_element_class);
                 }
-                setts.active_element = active_element;
+                V.core.active_element = active_element;
 
-                $(setts.active_element).addClass("selected");
+                $(V.core.active_element).addClass(V.core.setts.active_element_class);
 
-                $("#component-id").text(id);
-                $("#component-x").text(x);
-                $("#component-y").text(y);
-                // $("#component-width").text(w);
-                // $("#component-height").text(h);
+                V.core.update_element_information({id: id, x: x, y: y});
             });
     };
 
 
-    V.core.make_element_draggable = function (i, item) {
-        /** Привязывает события к компонентам */
+    V.core.set_axis = function () {
+        /** Set axis' location */
+        $("#horizontal-axis")
+            .attr("id", "horizontal-axis")
+            .attr("x1", 0)
+            .attr("y1", V.core.setts.height / 2)
+            .attr("x2", V.core.setts.width)
+            .attr("y2", V.core.setts.height / 2);
+        $("#vertical-axis")
+            .attr("id", "vertical-axis")
+            .attr("x1", V.core.setts.width / 2)
+            .attr("y1", 0)
+            .attr("x2", V.core.setts.width / 2)
+            .attr("y2", V.core.setts.height);
+    };
+
+
+    V.core.make_element_draggable = function (item) {
+        /** Делает элемент перетаскиваемым */
         $(item)
             // перетаскивание
             .draggable({
@@ -262,18 +267,29 @@ $( document ).ready(function() {
                     // сохранить текущие координаты
                     $target.attr("start_offset", [x, y].join(","));
                     // переместить компонент
-                    V.core.shift_component_location(event.target, dx, dy);
-
-                    // отобразить новые координаты
-                    $("#component-x").text(V.core.to_ws_x(x));
-                    $("#component-y").text(V.core.to_ws_y(y));
+                    V.core.shift_element_location(event.target, dx, -dy);
+                    V.core.update_element_information({x: x, y: y});
                 },
             });
     };
 
+    V.core.update_element_information = function (ctx) {
+        V.workspace.$element_info.css("visibility", "visible");
+        if (ctx.id) {
+            let id = ctx.id;
+            $("#component-id").text(id);
+        }
+        let [x, y] = [V.core.to_ws_x(ctx.x), V.core.to_ws_y(ctx.y)];
+        $("#component-x").text(x);
+        $("#component-y").text(y);
 
-    V.core.shift_component_location = function (component, dx=0, dy=0) {
+    };
+
+
+    V.core.shift_element_location = function (component, dx=0, dy=0) {
         /** Смещает компонент */
+        dy = -dy;  // для совместимости между системой отсчёта рабочей области и SVG (ось y отражена)
+
         $(component).children().each(function (i, element) {
             element = $(element);
             let name = element.prop("tagName");
@@ -291,6 +307,11 @@ $( document ).ready(function() {
                 ["x1", "x2"].forEach( (attr) => element.attr(attr, +element.attr(attr) + dx) );
                 ["y1", "y2"].forEach( (attr) => element.attr(attr, +element.attr(attr) + dy) );
             }
+            // TODO
+            // else if (name === "path") {
+            //     let d = element.attr("d").split(" ")
+            //         .map((v) => $.isNumeric(v) ? parseFloat(v): v);
+            // }
             // TEMP
             else {
                 console.error(component, element);
@@ -312,12 +333,12 @@ $( document ).ready(function() {
         let $new_component = parent_node
             .clone()
             .attr("id", new_id)
-            .removeClass("selected")
+            .removeClass(V.core.setts.active_element_class)
             .appendTo(V.core.$workspace)
-            .each(V.core.make_element_draggable);
+            .each((i, item) => V.core.make_element_draggable(item));
         // разместить компонент в начале координат
         // TODO заменить на set_component_location
-        V.core.shift_component_location($new_component, x, y);
+        V.core.shift_element_location($new_component, x, y);
         return $new_component;
     };
 

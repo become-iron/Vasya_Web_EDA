@@ -20,8 +20,10 @@ V.components.clone_element = function (type, parent_id) {
             this.$elem = V.core.clone_element(parent_node, this.id, this.params.x, this.params.y);
         }
 
-        set_location(x=0, y=0) {
+        set_location(x, y) {
             /**  */
+            x = x || this.params.x;
+            y = y || this.params.y;
             V.core.set_component_location(x, y);
         }
     }

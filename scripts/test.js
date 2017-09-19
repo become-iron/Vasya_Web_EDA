@@ -14,7 +14,7 @@ $( document ).ready(function() {
         // ['Wire', '#test_wire'],
         // ['Ground', '#test_gnd'],
         // ['Resistor', '#test_resistor'],
-    ].forEach( (v) => {
+    ].forEach((v) => {
         let [name, id] = [v[0], v[1]];
         V.workspace.libs.test[name] = V.components.clone_element(name, id);
     });
@@ -49,6 +49,9 @@ $( document ).ready(function() {
             // console.log(V.workspace.elements);
         });
 
-
+    // $("#workspace-side").on('click', '.component', function(event) {
+    //     console.log($(this));
+    //     console.log(event);
+    // });
 
 });

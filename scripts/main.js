@@ -12,4 +12,6 @@ let V = {
     components: {},
     // API для экспорта схем
     export: {},
+
+    support: {},
 };

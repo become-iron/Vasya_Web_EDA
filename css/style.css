@@ -56,7 +56,7 @@ html, body {
     background-color: #c5dabf;
 }
 
-#component-info {
+#element-info {
     visibility: hidden;
 }
 
@@ -71,23 +71,33 @@ html, body {
     stroke-width: 0.7;
 }
 
+.component {
+    stroke: black;
+    stroke-width: 2;
+}
+
+
 #workspace .component {
     cursor: move;
     position: absolute;
 }
 
-#workspace .component.selected * {
+.component .pin {
+    stroke: none !important;
+    fill: none !important;
+}
+
+#workspace .component.active * {
     stroke: red;
-    /*stroke-width: 2;*/
     /*stroke-dasharray: 5;*/
 }
 
 
-path, line {
-    fill: none;
-    stroke: black;
-    stroke-width: 1;
-}
+/*path, line {*/
+    /*fill: none;*/
+    /*stroke: black;*/
+    /*stroke-width: 1;*/
+/*}*/
 
 svg * {
     pointer-events: all;
