@@ -13,11 +13,12 @@
     <script src="scripts/libs/jquery-3.2.1.min.js"></script>
     <script src="scripts/libs/underscore-min.js"></script>
     <script src="scripts/libs/jquery-ui.min.js"></script>
-    <script src="scripts/libs/d3.min.js"></script>
+    <!--<script src="scripts/libs/d3.min.js"></script>-->
 
     <script src="scripts/main.js"></script>
     <script src="scripts/core.js"></script>
     <script src="scripts/components.js"></script>
+    <script src="scripts/workspace.js"></script>
     <script src="scripts/test.js"></script>
 </head>
 <body>
@@ -57,23 +58,44 @@
                     <!--</g>-->
 
                     <g id="diode" class="component">
-                        <rect class="hitbox" x="10" width="60" height="20" />
-                        <line x1="0" y1="10" x2="20" y2="10" />
-                        <rect x="20" width="40" height="20" fill="none" stroke="black" stroke-width="1" />
-                        <line x1="60" y1="10" x2="80" y2="10" />
+                        <line x1="0" y1="20" x2="40" y2="20" />
+                        <rect x="40" y="0" width="100" height="40" fill="none" />
+                        <line x1="140" y1="20" x2="180" y2="20" />
+
+                        <circle class="pin" cx="0" cy="20" r="5" />
+                        <circle class="pin" cx="180" cy="20" r="5" />
+                        <!--<rect class="hitbox" x="10" y="0" width="60" height="20" />-->
                     </g>
 
                     <g id="capacitor" class="component">
-                        <rect class="hitbox" x="10" width="30" height="20" />
-                        <line x1="0" y1="10" x2="20" y2="10" />
-                        <line x1="20" y1="0" x2="20" y2="20" />
-                        <line x1="30" y1="0" x2="30" y2="20" />
-                        <line x1="30" y1="10" x2="50" y2="10" />
+                        <line x1="0" y1="30" x2="40" y2="30" />
+                        <line x1="40" y1="0" x2="40" y2="60" />
+                        <line x1="60" y1="0" x2="60" y2="60" />
+                        <line x1="60" y1="30" x2="100" y2="30" />
+
+                        <circle class="pin" cx="0" cy="30" r="5" />
+                        <circle class="pin" cx="100" cy="30" r="5" />
+                        <rect class="hitbox" x="30" y="0" width="40" height="60" />
                     </g>
+
+                    <!--<g id="solenoid" class="component">-->
+                        <!--<path d="M 480 260 h -3" />-->
+                        <!--<path d="M 477 257 L 474 260 L 477 263" />-->
+                        <!--<path d="M 440 260 h 3" />-->
+
+                        <!--<path d="M 443 263 L 446 260 L 443 257" />-->
+
+                        <!--<path d="M 443.117 259.932 A 4 3.9 0 1 1 451.082 259.936" />-->
+                        <!--<path d="M 451.6 259.929 A 4 3.9 0 1 1 459.565 259.934" />-->
+                        <!--<path d="M 460.067 259.929 A 4 3.9 0 1 1 468.032 259.934" />-->
+                        <!--<path d="M 468.7 259.931 A 4 3.9 0 1 1 476.665 259.936" />-->
+                    <!--</g>-->
+
                 </defs>
 
                 <rect id="background" width="100%" height="100%" fill="url(#gridPattern)" />
-
+                <line id="horizontal-axis" />
+                <line id="vertical-axis" />
 
                 <!--TEMP-->
                 <g id="blue-rect" class="component"><rect width="30" height="40" fill="skyblue" /></g>
@@ -88,7 +110,7 @@
             <div>Mouse X: <span id="mouse-x">0</span></div>
             <div>Mouse Y: <span id="mouse-y">0</span></div>
             <hr>
-            <div id="component-info">
+            <div id="element-info">
                 <div>Selected component</div>
                 <div>id: <span id="component-id"></span></div>
                 <div>x: <span id="component-x"></span></div>
