@@ -2,8 +2,8 @@
   <div class="d-flex flex-column h-100">
     <b-navbar toggleable="md" type="dark" variant="dark" class="px-1">
       <!--<b-navbar-brand href="/">VASILY</b-navbar-brand>-->
-      <b-navbar-brand href="/" class="p-0">
-        <img src="/static/logo.png" class="img-fluid main-menu__logo">
+      <b-navbar-brand href="#" class="p-0">
+        <img src="static/logo.png" class="img-fluid main-menu__logo">
       </b-navbar-brand>
 
       <b-navbar-nav class="ml-auto">
@@ -88,10 +88,7 @@
   import TheLibrariesSelectModal from './TheLibrariesSelectModal'
   export default {
     name: 'TheLeftSidebar',
-
-    components: {
-      TheLibrariesSelectModal
-    },
+    components: { TheLibrariesSelectModal },
 
     data () {
       return {
@@ -105,7 +102,7 @@
     },
 
     methods: {
-      loadLibrariesList: async function () {
+      async loadLibrariesList () {
         let libraries = Array(5).fill(null)
         libraries.forEach((l, i) => {
           libraries[i] = {
@@ -117,7 +114,7 @@
         this.libraries = libraries
       },
 
-      loadLibrary: async function (library) {
+      async loadLibrary (library) {
         let components = Array(12).fill(null)
         components.forEach((l, i) => {
           components[i] = {
@@ -129,7 +126,7 @@
         this.$set(library, 'components', components)
       },
 
-      selectLibrary: function (library) {
+      selectLibrary (library) {
         if (!library.components.length) {
           this.loadLibrary(library)
         }

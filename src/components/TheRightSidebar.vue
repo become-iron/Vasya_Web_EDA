@@ -1,16 +1,26 @@
 <template>
   <div class="d-flex flex-column">
-    <div class="d-flex justify-content-center p-1">
+    <div class="d-flex justify-content-around p-1">
       <b-button-group size="sm">
-        <b-button @click="zoomOut">
+        <b-button :disabled="!bus.canUndo" @click="bus.$emit('undo')">
+          <span class="oi oi-action-undo"></span>
+        </b-button>
+
+        <b-button :disabled="!bus.canRedo" @click="bus.$emit('redo')">
+          <span class="oi oi-action-redo"></span>
+        </b-button>
+      </b-button-group>
+
+      <b-button-group size="sm">
+        <b-button @click="bus.$emit('zoom-out')">
           <span class="oi oi-zoom-out"></span>
         </b-button>
 
-        <b-button @click="zoomReset">
-          {{ zoom }}%
+        <b-button @click="bus.$emit('zoom-reset')">
+          {{ bus.zoom }}%
         </b-button>
 
-        <b-button @click="zoomIn">
+        <b-button @click="bus.$emit('zoom-in')">
           <span class="oi oi-zoom-in"></span>
         </b-button>
       </b-button-group>
@@ -75,34 +85,19 @@
 </template>
 
 <script>
+  import { Bus } from '../Bus'
+
   export default {
     name: 'TheRightSidebar',
 
-    props: {
-      zoom: {
-        type: Number,
-        default: 100
-      }
-    },
-
     data () {
       return {
-
+        bus: Bus,
       }
     },
 
     methods: {
-      zoomIn: function () {
-        this.$emit('zoom-in')
-      },
 
-      zoomOut: function () {
-        this.$emit('zoom-out')
-      },
-
-      zoomReset: function () {
-        this.$emit('zoom-reset')
-      },
     }
   }
 </script>
