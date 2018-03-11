@@ -3,8 +3,11 @@ export const Bus = new Vue({
   data () {
     return {
       canUndo: false,
-      canRedo: true,
+      canRedo: false,
+
       zoom: 100
     }
   }
 })
+
+window.bus = Bus
