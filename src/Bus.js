@@ -5,7 +5,9 @@ export const Bus = new Vue({
       canUndo: false,
       canRedo: false,
 
-      zoom: 100
+      zoom: 100,
+
+      libraries: []
     }
   }
 })

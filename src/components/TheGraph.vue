@@ -14,7 +14,7 @@
 
     data: function () {
       return {
-        // bus: Bus
+        bus: Bus
       }
     },
 
@@ -29,6 +29,11 @@
       let $container = this.$el
       $container.style.backgroundImage = `url(${window.mxBasePath}/images/grid.gif)`  // setup grid
 
+      // mxgraph.mxGraphHandler.prototype.guidesEnabled = true
+      // mxgraph.mxConstants.GUIDE_COLOR = '#FF0000';
+      // mxgraph.mxConstants.GUIDE_STROKEWIDTH = 1;
+      // mxgraph.mxEdgeHandler.prototype.snapToTerminals = true;
+
       this.editor = new mxgraph.mxEditor()
       this.editor.setGraphContainer($container)
       this.graph = this.editor.graph
@@ -37,10 +42,21 @@
       this.setOverrides()
       this.setListeners()
 
-      this.graph.container.focus()  // focus on graph
+      this.graph.setConnectable(true)
+      this.graph.setConnectableEdges(true)
+      this.graph.setCellsResizable(false)
+      this.graph.setPanning(true)
 
-      console.log(this.editor)
-      this.setTestState()
+      // style adjusting
+      let style = this.graph.getStylesheet().getDefaultEdgeStyle()
+      style[mxgraph.mxConstants.STYLE_EDGE] = mxgraph.mxEdgeStyle.OrthConnector
+      style[mxgraph.mxConstants.STYLE_ENDARROW] = 'none'
+
+
+      this.graph.container.focus()  // set focus on graph
+
+      // console.log(this.editor)
+      // this.setTestState()
 
       // let toolbar = new mxgraph.mxDefaultToolbar(document.getElementById('toolbar'), this.editor);
       // toolbar.addItem('Copy', null, 'copy');
@@ -50,20 +66,28 @@
 
     methods: {
       setTestState () {
-        let parent = this.graph.getDefaultParent();
-        this.graph.getModel().beginUpdate();
+        // const shapes = this.registerLibrary('/static/components/electrical/resistors.xml')
+        // shapes.forEach(shapeName => this.insertShape(shapeName))
+
+        let parent = this.graph.getDefaultParent()
+        this.graph.getModel().beginUpdate()
         try {
-          let v1 = this.graph.insertVertex(parent, null, { label: 'Hello,', data: 1234 }, 20, 20, 80, 30);
-          let v2 = this.graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30);
-          let e1 = this.graph.insertEdge(parent, null, '', v1, v2);
+          let v1 = this.graph.insertVertex(parent, null, { label: 'Hello,', data: 1234 }, 20, 20, 80, 30)
+          let v2 = this.graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30)
+          let e1 = this.graph.insertEdge(parent, null, '', v1, v2)
+
+          // let v3 = this.graph.insertVertex(parent, null, '', 300, 200, 80, 30, 'shape=Attenuator')
+
         } finally {
-          this.graph.getModel().endUpdate();
+          this.graph.getModel().endUpdate()
         }
+
 
         this.updateUndoManagerState()  // TODO
       },
 
       setOverrides () {
+        // custom value
         const convertValueToString = this.graph.convertValueToString
         this.graph.convertValueToString = function (cell) {
           return (cell != null && cell.value.label != null) ?
@@ -82,6 +106,31 @@
         //
         //   cellLabelChanged.apply(this, [cell, newValue, autoSize])
         // }
+
+        // TODO: refactor
+        // enables connect preview for the default edge style
+        // source: anchors example
+        this.graph.connectionHandler.createEdgeState = function(me) {
+          const edge = this.graph.createEdge(null, null, null, null, null)
+          return new mxgraph.mxCellState(this.graph.view, edge, this.graph.getCellStyle(edge))
+        }
+
+        // TODO: refactor
+        // TODO: explore wires example6
+        // Makes sure non-relative cells can only be connected via constraints
+        // source: wires example
+        this.graph.connectionHandler.isConnectableCell = function(cell) {
+          if (this.graph.getModel().isEdge(cell)) {
+            return true;
+          } else {
+            const geo = (cell != null) ? this.graph.getCellGeometry(cell) : null;
+            return (geo != null) ? geo.relative : false;
+          }
+        }
+        mxgraph.mxEdgeHandler.prototype.isConnectableCell = function(cell)
+        {
+          return this.graph.connectionHandler.isConnectableCell(cell);
+        }
       },
 
       setListeners () {
@@ -99,6 +148,10 @@
         this.keyHandler.handler.bindKey(keycode('up'), () => { this.moveSelectedCells(0, -1) })
         this.keyHandler.handler.bindKey(keycode('right'), () => { this.moveSelectedCells(1, 0) })
         this.keyHandler.handler.bindKey(keycode('down'), () => { this.moveSelectedCells(0, 1) })
+
+
+        // this.keyHandler.bindAction(keycode('n'), 'new', true); // Ctrl+N
+        // this.keyHandler.bindAction(keycode('o'), 'open', true); // Ctrl+O
 
         // undo on Ctrl + Z
         this.keyHandler.bindAction(keycode('z'), 'undo', true)
@@ -131,12 +184,17 @@
         })
         Bus.$on('zoom-reset', () => {
           this.graph.zoomActual()
+          this.graph.center()
           this.updateZoomState()
         })
         Bus.$on('undo', () => { this.editor.undo() })
         Bus.$on('redo', () => { this.editor.redo() })
+
+        Bus.$on('loadLibrary', (library) => { this.loadLibrary(library) })
+        Bus.$on('insertShape', (shapeName, coordinates) => { this.addComponentByStencil(shapeName, coordinates) })
       },
 
+      /** Stores in the bus actual zoom in percents */
       updateZoomState () {
         Bus.zoom = Math.floor(this.graph.view.scale * 100)
       },
@@ -148,12 +206,75 @@
 
       moveSelectedCells (dx=0, dy=0, byStep=true) {
         if (byStep) {
-          let step = 10
-          dx = dx * step
-          dy = dy * step
+          const step = 10
+          dx *= step
+          dy *= step
         }
 
-        this.graph.moveCells(this.graph.getSelectionCells(), dx, dy)
+        const selectedCells = this.graph.getSelectionCells()
+        this.graph.moveCells(selectedCells, dx, dy)
+      },
+
+      loadLibrary (library) {
+        const req = mxgraph.mxUtils.load(library.url)
+        const root = req.getDocumentElement()
+
+        let components = []
+
+        root.childNodes.forEach(shape => {
+          if (shape.nodeType === mxgraph.mxConstants.NODETYPE_ELEMENT)
+          {
+            const stencilName = shape.getAttribute('name')
+            const stencil = new mxgraph.mxStencil(shape)
+            mxgraph.mxStencilRegistry.addStencil(stencilName, stencil)
+
+            let graph = new mxgraph.mxGraph(document.createElement('div'))
+            const parent = graph.getDefaultParent()
+            // TEMP
+            const containerSize = 46
+            const baseOffset = 2
+            const scale = containerSize / Math.max(stencil.w0, stencil.h0)
+            const width = Math.trunc(stencil.w0 * scale)
+            const height = Math.trunc(stencil.h0 * scale)
+            const topOffset = Math.trunc((containerSize - height) / 2) + baseOffset
+            const leftOffset = Math.trunc((containerSize - width) / 2) + baseOffset
+            graph.insertVertex(parent, null, '', leftOffset, topOffset, width, height, `shape=${stencilName};`)
+
+            components.push({
+              name: stencilName,
+              el: graph.container.innerHTML
+            })
+          }
+        })
+
+        // console.log(components[0].el)
+        library.components.push(...components)
+      },
+
+      addComponentByStencil (stencilName, coords) {
+        const parent = this.editor.graph.getDefaultParent()
+        const model = this.editor.graph.model
+        const style = `shape=${stencilName};`
+
+        const stencil = mxgraph.mxStencilRegistry.getStencil(stencilName)
+
+        // TEMP
+        if (coords == null) {
+          const gridStep = 10
+          coords = [
+            Math.trunc(Math.random() * (this.$el.clientWidth - stencil.w0) / gridStep) * gridStep,
+            Math.trunc(Math.random() * (this.$el.clientHeight - stencil.h0) / gridStep) * gridStep,
+            stencil.w0,
+            stencil.h0
+          ]
+        }
+
+        model.beginUpdate()
+        try {
+          this.editor.graph.insertVertex(parent, null, '', ...coords, style)
+        } finally {
+          model.endUpdate()
+        }
       }
     }
   }
@@ -161,6 +282,6 @@
 
 <style scoped>
   #graph {
-    overflow: hidden;
+    overflow: auto;
   }
 </style>

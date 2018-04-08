@@ -2,25 +2,25 @@
   <div class="d-flex flex-column">
     <div class="d-flex justify-content-around p-1">
       <b-button-group size="sm">
-        <b-button :disabled="!bus.canUndo" @click="bus.$emit('undo')">
+        <b-button title="Undo" :disabled="!bus.canUndo" @click="bus.$emit('undo')">
           <span class="oi oi-action-undo"></span>
         </b-button>
 
-        <b-button :disabled="!bus.canRedo" @click="bus.$emit('redo')">
+        <b-button title="Redo" :disabled="!bus.canRedo" @click="bus.$emit('redo')">
           <span class="oi oi-action-redo"></span>
         </b-button>
       </b-button-group>
 
       <b-button-group size="sm">
-        <b-button @click="bus.$emit('zoom-out')">
+        <b-button title="Zoom out" @click="bus.$emit('zoom-out')">
           <span class="oi oi-zoom-out"></span>
         </b-button>
 
-        <b-button @click="bus.$emit('zoom-reset')">
+        <b-button title="Reset zoom and center the graph" @click="bus.$emit('zoom-reset')">
           {{ bus.zoom }}%
         </b-button>
 
-        <b-button @click="bus.$emit('zoom-in')">
+        <b-button title="Zoom in" @click="bus.$emit('zoom-in')">
           <span class="oi oi-zoom-in"></span>
         </b-button>
       </b-button-group>
@@ -93,11 +93,18 @@
     data () {
       return {
         bus: Bus,
+        selectedCell: null
       }
     },
 
-    methods: {
+    created () {
+      this.bus.$on('select-component', this.selectComponentHandler)
+    },
 
+    methods: {
+      selectComponentHandler (cell) {
+        this.selectedCell = cell
+      }
     }
   }
 </script>
