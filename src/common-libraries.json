@@ -1,0 +1,146 @@
+[
+  {
+    "id": "abstract",
+    "name": "Abstract",
+    "description": "",
+    "url": "/static/components/electrical/abstract.xml"
+  },
+  {
+    "id": "capacitors",
+    "name": "Capacitors",
+    "description": "",
+    "url": "/static/components/electrical/capacitors.xml"
+  },
+  {
+    "id": "diodes",
+    "name": "Diodes",
+    "description": "",
+    "url": "/static/components/electrical/diodes.xml"
+  },
+  {
+    "id": "electro-mechanical",
+    "name": "Electro-mechanical",
+    "description": "",
+    "url": "/static/components/electrical/electro-mechanical.xml"
+  },
+  {
+    "id": "iec417",
+    "name": "IEC 417",
+    "description": "",
+    "url": "/static/components/electrical/iec417.xml"
+  },
+  {
+    "id": "iec_logic_gates",
+    "name": "IEC Logic Gates",
+    "description": "",
+    "url": "/static/components/electrical/iec_logic_gates.xml"
+  },
+  {
+    "id": "inductors",
+    "name": "Inductors",
+    "description": "",
+    "url": "/static/components/electrical/inductors.xml"
+  },
+  {
+    "id": "instruments",
+    "name": "Instruments",
+    "description": "",
+    "url": "/static/components/electrical/instruments.xml"
+  },
+  {
+    "id": "logic_gates",
+    "name": "Logic gates",
+    "description": "",
+    "url": "/static/components/electrical/logic_gates.xml"
+  },
+  {
+    "id": "miscellaneous",
+    "name": "Miscellaneous",
+    "description": "",
+    "url": "/static/components/electrical/miscellaneous.xml"
+  },
+  {
+    "id": "mosfets1",
+    "name": "MOSFETs",
+    "description": "",
+    "url": "/static/components/electrical/mosfets1.xml"
+  },
+  {
+    "id": "mosfets2",
+    "name": "MOSFETs 2",
+    "description": "",
+    "url": "/static/components/electrical/mosfets2.xml"
+  },
+  {
+    "id": "opto_electronics",
+    "name": "Optoelectronics",
+    "description": "",
+    "url": "/static/components/electrical/opto_electronics.xml"
+  },
+  {
+    "id": "op_amps",
+    "name": "Operational amplifiers",
+    "description": "",
+    "url": "/static/components/electrical/op_amps.xml"
+  },
+  {
+    "id": "plc_ladder",
+    "name": "PLC Ladder",
+    "description": "",
+    "url": "/static/components/electrical/plc_ladder.xml"
+  },
+  {
+    "id": "power_semiconductors",
+    "name": "Power semiconductors",
+    "description": "",
+    "url": "/static/components/electrical/power_semiconductors.xml"
+  },
+  {
+    "id": "radio",
+    "name": "Radio",
+    "description": "",
+    "url": "/static/components/electrical/radio.xml"
+  },
+  {
+    "id": "resistors",
+    "name": "Resistors",
+    "description": "",
+    "url": "/static/components/electrical/resistors.xml"
+  },
+  {
+    "id": "rot_mech",
+    "name": "Rotating Machine",
+    "description": "",
+    "url": "/static/components/electrical/rot_mech.xml"
+  },
+  {
+    "id": "signal_sources",
+    "name": "Signal sources",
+    "description": "",
+    "url": "/static/components/electrical/signal_sources.xml"
+  },
+  {
+    "id": "thermionic_devices",
+    "name": "Thermionic devices",
+    "description": "",
+    "url": "/static/components/electrical/thermionic_devices.xml"
+  },
+  {
+    "id": "transistors",
+    "name": "Transistors",
+    "description": "",
+    "url": "/static/components/electrical/transistors.xml"
+  },
+  {
+    "id": "transmission",
+    "name": "Transmission Paths",
+    "description": "",
+    "url": "/static/components/electrical/transmission.xml"
+  },
+  {
+    "id": "waveforms",
+    "name": "Waveforms",
+    "description": "",
+    "url": "/static/components/electrical/waveforms.xml"
+  }
+]

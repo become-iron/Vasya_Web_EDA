@@ -52,10 +52,10 @@
   }
 
   #left-sidebar {
-    border-right: 1px solid #343a40;
+    border-right: 2px solid #343a40;
   }
 
   #right-sidebar {
-    border-left: 1px solid #343a40;
+    border-left: 2px solid #343a40;
   }
 </style>

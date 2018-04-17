@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-column">
+  <div class="d-flex flex-column h-100">
     <div class="d-flex justify-content-around p-1">
       <b-button-group size="sm">
         <b-button title="Undo" :disabled="!bus.canUndo" @click="bus.$emit('undo')">
@@ -26,65 +26,82 @@
       </b-button-group>
     </div>
 
-    <div>
-      <h6 class="text-center w-100 bg-dark text-light py-1">
-        Component parameters
-      </h6>
+    <h6 class="text-center w-100 bg-dark text-light mb-0 py-1">
+      Selected components
+    </h6>
 
-      <div class="px-1">
+    <div class="overflow-y-scroll">
+      <div v-for="component of selectedComponents"
+              :key="component.id"
+              class="component-card mx-1 mt-1">
+        <!-- TODO -->
         <div class="row no-gutters mb-1">
           <span class="col-5 font-weight-bold">
-            Component
+            Name
           </span>
           <span class="col-7">
-            Resistor
+            {{ component.componentName }}
           </span>
         </div>
         <div class="row no-gutters mb-1">
           <span class="col-5 font-weight-bold">
-            Resistance (Om)
+            Library
           </span>
           <span class="col-7">
-            <input type="text" class="form-control" value="5">
+            {{ component.libraryName }}
           </span>
         </div>
         <div class="row no-gutters mb-1">
           <span class="col-5 font-weight-bold">
-            Another parameter
+            ID
           </span>
           <span class="col-7">
-            <input type="text" class="form-control" value="Meow">
+            {{ component.id }}
           </span>
         </div>
-        <div class="row no-gutters mb-1">
+        <div v-for="parameter of component.parameters"
+             :key="parameter.title"
+             class="row no-gutters mb-1">
           <span class="col-5 font-weight-bold">
-            Yet another parameter
+            {{ parameter.title }}
           </span>
           <span class="col-7">
-            <input type="text" class="form-control" value="Woof">
+            <input type="text"
+                   class="form-control"
+                   :value="parameter.value">
           </span>
         </div>
+        <!--<div class="row no-gutters mb-1">-->
+          <!--<span class="col-5 font-weight-bold">-->
+            <!--Resistance (Om)-->
+          <!--</span>-->
+          <!--<span class="col-7">-->
+            <!--<input type="text" class="form-control" value="5">-->
+          <!--</span>-->
+        <!--</div>-->
+        <!--<div class="row no-gutters mb-1">-->
+          <!--<span class="col-5 font-weight-bold">-->
+            <!--Another parameter-->
+          <!--</span>-->
+          <!--<span class="col-7">-->
+            <!--<input type="text" class="form-control" value="Meow">-->
+          <!--</span>-->
+        <!--</div>-->
+        <!--<div class="row no-gutters mb-1">-->
+          <!--<span class="col-5 font-weight-bold">-->
+            <!--Yet another parameter-->
+          <!--</span>-->
+          <!--<span class="col-7">-->
+            <!--<input type="text" class="form-control" value="Woof">-->
+          <!--</span>-->
+        <!--</div>-->
       </div>
-
-      <!--<form class="p-1">-->
-        <!--<div class="form-group row">-->
-          <!--<label class="col-sm-4 col-form-label">Email</label>-->
-          <!--<div class="col-sm-8">-->
-            <!--<input type="text" class="form-control" value="email@example.com">-->
-          <!--</div>-->
-        <!--</div>-->
-        <!--<div class="form-group row">-->
-          <!--<label class="col-sm-4 col-form-label">Password</label>-->
-          <!--<div class="col-sm-8">-->
-            <!--<input type="password" class="form-control" placeholder="Password">-->
-          <!--</div>-->
-        <!--</div>-->
-      <!--</form>-->
     </div>
   </div>
 </template>
 
 <script>
+  import { cloneObject } from "../utils";
   import { Bus } from '../Bus'
 
   export default {
@@ -93,22 +110,39 @@
     data () {
       return {
         bus: Bus,
-        selectedCell: null
+        selectedComponents: []
       }
     },
 
     created () {
-      this.bus.$on('select-component', this.selectComponentHandler)
+      this.bus.$on('cells-selection', this.selectComponentHandler)
     },
 
     methods: {
-      selectComponentHandler (cell) {
-        this.selectedCell = cell
+      selectComponentHandler (selected, deselected) {
+        // TODO: consider edges selection
+        const deselectedComponents = deselected.filter(cell => cell.vertex)
+        // remove deselected components
+        this.selectedComponents = this.selectedComponents
+          .filter(component => !deselectedComponents.find(cell => cell.value.id === component.id))
+
+        // add new selected components
+        const components = selected.filter(cell => cell.vertex).map(cell => cell.value)
+        // clone object in order to not make it reactive
+        this.selectedComponents.push(...cloneObject(components))
+        console.log(JSON.parse(JSON.stringify(this.selectedComponents)))
       }
     }
   }
 </script>
 
 <style scoped>
-
+  .component-card {
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    background: white;
+    border-radius: 0.2rem;
+    padding: 1rem;
+    word-wrap: break-word;
+  }
 </style>

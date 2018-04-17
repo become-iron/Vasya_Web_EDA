@@ -190,8 +190,12 @@
         Bus.$on('undo', () => { this.editor.undo() })
         Bus.$on('redo', () => { this.editor.redo() })
 
-        Bus.$on('loadLibrary', (library) => { this.loadLibrary(library) })
-        Bus.$on('insertShape', (shapeName, coordinates) => { this.addComponentByStencil(shapeName, coordinates) })
+        Bus.$on('load-library', library => { this.loadLibrary(library) })
+        Bus.$on(
+          'insert-shape',
+          (shapeName, shapeValue, coordinates) => { this.addComponentByStencil(shapeName, shapeValue, coordinates) }
+        )
+        Bus.$on('graph-to-xml', () => { this.graphModelToXML() })
       },
 
       /** Stores in the bus actual zoom in percents */
@@ -222,16 +226,15 @@
         let components = []
 
         root.childNodes.forEach(shape => {
-          if (shape.nodeType === mxgraph.mxConstants.NODETYPE_ELEMENT)
-          {
+          if (shape.nodeType === mxgraph.mxConstants.NODETYPE_ELEMENT) {
             const stencilName = shape.getAttribute('name')
             const stencil = new mxgraph.mxStencil(shape)
             mxgraph.mxStencilRegistry.addStencil(stencilName, stencil)
 
             let graph = new mxgraph.mxGraph(document.createElement('div'))
             const parent = graph.getDefaultParent()
-            // TEMP
-            const containerSize = 46
+            // TEMP: prettify it
+            const containerSize = 48  // TODO: not quite container size
             const baseOffset = 2
             const scale = containerSize / Math.max(stencil.w0, stencil.h0)
             const width = Math.trunc(stencil.w0 * scale)
@@ -242,23 +245,24 @@
 
             components.push({
               name: stencilName,
+              // stencil: shape.outerHTML,
+              // stencil: mxgraph.mxUtils.getTextContent(shape),
               el: graph.container.innerHTML
             })
           }
         })
 
-        // console.log(components[0].el)
         library.components.push(...components)
       },
 
-      addComponentByStencil (stencilName, coords) {
+      addComponentByStencil (stencilName, shapeValue='', coords) {
         const parent = this.editor.graph.getDefaultParent()
         const model = this.editor.graph.model
         const style = `shape=${stencilName};`
 
         const stencil = mxgraph.mxStencilRegistry.getStencil(stencilName)
 
-        // TEMP
+        // TEMP: random coords
         if (coords == null) {
           const gridStep = 10
           coords = [
@@ -268,13 +272,20 @@
             stencil.h0
           ]
         }
+        const cellID = shapeValue.id != null ? shapeValue.id : null
 
         model.beginUpdate()
         try {
-          this.editor.graph.insertVertex(parent, null, '', ...coords, style)
+          this.editor.graph.insertVertex(parent, cellID, shapeValue, ...coords, style)
         } finally {
           model.endUpdate()
         }
+      },
+
+      graphModelToXML () {
+        const encoder = new mxgraph.mxCodec()
+        const result = encoder.encode(this.graph.getModel())
+        console.log(mxgraph.mxUtils.getXml(result))
       }
     }
   }
