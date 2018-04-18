@@ -1,39 +1,25 @@
 <template>
   <div class="d-flex flex-column h-100">
-    <!--<b-navbar toggleable="md" type="dark" variant="dark" class="px-1">-->
-      <!--&lt;!&ndash;<b-navbar-brand href="/">VASILY</b-navbar-brand>&ndash;&gt;-->
-      <!--&lt;!&ndash;<b-navbar-brand href="#" class="p-0">&ndash;&gt;-->
-        <!--&lt;!&ndash;<img src="static/logo.png" class="img-fluid main-menu__logo">&ndash;&gt;-->
-      <!--&lt;!&ndash;</b-navbar-brand>&ndash;&gt;-->
-
-      <!--<b-navbar-nav class="ml-auto">-->
-        <!--<b-nav-item href="#">-->
-
-        <!--</b-nav-item>-->
-        <!--<b-nav-item href="#">-->
-          <!--<span class="oi oi-account-login"></span>-->
-        <!--</b-nav-item>-->
-        <!--<b-nav-item href="#">-->
-          <!--<span class="oi oi-cog"></span>-->
-        <!--</b-nav-item>-->
-        <!--<b-nav-item href="#">-->
-          <!--<span class="oi oi-info"></span>-->
-        <!--</b-nav-item>-->
-      <!--</b-navbar-nav>-->
-    <!--</b-navbar>-->
-
     <div class="d-flex menu w-100">
       <div class="menu-title " title="Basil EDA">
         Basil EDA
       </div>
 
+      <!--<div class="m-1 mt-3">-->
+        <!--<img src="static/logo.png" class="img-fluid main-menu__logo">-->
+      <!--</div>-->
+
       <div class="ml-auto">
-        <div class="menu-item" title="New">
+        <div class="menu-item"
+             title="New">
           <span class="oi oi-document"></span>
         </div>
 
-        <div class="menu-item" title="New" @click="exportGraph()">
-          <span class="oi oi-document"></span>
+        <div class="menu-item"
+             title="Save"
+             v-b-modal.export-scheme-modal
+             @click="exportGraph()">
+          <span class="oi oi-box"></span>
         </div>
 
         <!--<div class="menu-item" title="Login">-->
@@ -49,7 +35,7 @@
 
 
     <div class="components-panel overflow-y-scroll p-1">
-      <div v-for="library of libraries" :key="library.id" class="mb-1">
+      <div v-for="library of selectedLibraries" :key="library.id" class="mb-1">
         <b-btn class="w-100 mb-1"
                size="sm"
                variant="outline-secondary"
@@ -60,78 +46,41 @@
         </b-btn>
 
         <b-collapse class="w-100" :id="'collapse-' + library.id">
-          <!--<div class="row no-gutters">-->
-          <div class="component-block"
-               v-for="component of library.components"
-               :title="component.name"
-               v-html="component.el"
-               @click="addComponent(library, component)">
+          <div class="d-flex flex-wrap">
+            <div class="component-block"
+                 v-for="component of library.components"
+                 :title="component.name"
+                 v-html="component.el"
+                 @click="addComponent(library, component)">
+            </div>
           </div>
-          <!--</div>-->
         </b-collapse>
       </div>
     </div>
 
     <div class="bottom-block mt-auto w-100">
-      <!--<hr class="m-0">-->
-
       <div class="p-1">
         <b-btn class="w-100" size="sm" variant="outline-secondary"
                v-b-modal.libraries-selection-modal>
           <span class="oi oi-folder"></span>
-          Select libraries
+          Select Libraries
         </b-btn>
-
-        <b-modal id="libraries-selection-modal" title="Component Libraries" hide-footer size="lg">
-          <b-nav justified tabs class="mb-2">
-            <b-nav-item active>
-              Common libraries
-            </b-nav-item>
-            <b-nav-item>
-              User libraries
-            </b-nav-item>
-          </b-nav>
-
-          <div class="row no-gutters">
-            <b-list-group class="overflow-y-scroll col-4 pr-2" style="max-height: 40rem;">
-              <b-list-group-item v-for="library of libraries"
-                                 :key="library.id"
-                                 href="#">
-                {{ library.name }}
-              </b-list-group-item>
-              <!--<b-list-group-item href="#" active>Ordinary components library</b-list-group-item>-->
-              <!--<b-list-group-item href="#">Another components library</b-list-group-item>-->
-              <!--<b-list-group-item href="#">Little cat</b-list-group-item>-->
-            </b-list-group>
-
-            <div class="col-8 pl-2">
-              <table class="table table-bordered">
-                <thead>
-                  <tr>
-                    <th>Some</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tr>
-                  <td></td>
-                  <td>library</td>
-                </tr>
-                <tr>
-                  <td>description</td>
-                  <td></td>
-                </tr>
-              </table>
-            </div>
-          </div>
-        </b-modal>
       </div>
     </div>
 
+    <TheLibrariesModal></TheLibrariesModal>
+
+    <b-modal id="export-scheme-modal"
+             title="Export Scheme"
+             hide-footer
+             size="lg">
+      {{ bus.exportedGraph }}
+    </b-modal>
   </div>
 </template>
 
 <script>
-  import TheLibrariesSelectModal from './TheLibrariesSelectModal'
+  import TheLibrariesModal from './TheLibrariesModal'
   import { Bus } from '../Bus'
 
   const uuid = require('uuid/v4')
@@ -139,17 +88,22 @@
 
   export default {
     name: 'TheLeftSidebar',
-    components: { TheLibrariesSelectModal },
+    components: { TheLibrariesModal },
 
     data () {
       return {
         bus: Bus,
-        libraries: Bus.libraries,
-        // currentLibrary: null
+        libraries: Bus.libraries
       }
     },
 
-    created () {
+    computed: {
+      selectedLibraries () {
+        return this.bus.libraries.filter(library => library.selected)
+      }
+    },
+
+    mounted () {
       this.loadLibrariesList()
     },
 
@@ -157,10 +111,17 @@
       async loadLibrariesList () {
         // TODO: load user libs
         // TODO: exclude excluded libs
+        // commonLibraries = commonLibraries.splice(0, 5)
         commonLibraries.forEach(library => {
           library.components = []
+          library.selected = false
         })
         this.libraries.push(...commonLibraries)
+
+        // TEMP
+        this.bus.$emit('select-library', this.bus.libraries[0])
+        this.bus.$emit('select-library', this.bus.libraries[1])
+        this.bus.$emit('select-library', this.bus.libraries[2])
       },
 
       selectLibrary (library) {
@@ -190,7 +151,7 @@
 
 <style scoped>
   /*.main-menu__logo {*/
-    /*height: 3rem;*/
+    /*height: 2rem;*/
   /*}*/
 
   .bottom-block {
@@ -198,14 +159,13 @@
   }
 
   .component-block {
-    display: inline-block;
     height: 3.8rem;
     width: 3.8rem;
     margin: 0.1rem;
-    /*padding: 0.25rem;*/
     border: solid 1px #8C8C8C;
     cursor: pointer;
     overflow: hidden;
+    user-select: none;
   }
 
   .component-block:hover {
@@ -222,6 +182,7 @@
 
   .menu {
     background-color: #343a40;
+    user-select: none;
   }
 
   .menu .menu-item {

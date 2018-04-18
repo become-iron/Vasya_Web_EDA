@@ -285,7 +285,28 @@
       graphModelToXML () {
         const encoder = new mxgraph.mxCodec()
         const result = encoder.encode(this.graph.getModel())
-        console.log(mxgraph.mxUtils.getXml(result))
+        const xml = mxgraph.mxUtils.getXml(result)
+
+        // generate json-file with scheme description
+        // TEMP
+        const exp = {
+          date: Date.now(),
+          author: null,
+          title: null,
+          libraries: [],
+          scheme: xml
+        }
+        // https://stackoverflow.com/a/30800715/4729582
+        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exp))
+        let downloadAnchorNode = document.createElement('a')
+        downloadAnchorNode.setAttribute('href', dataStr)
+        downloadAnchorNode.setAttribute('download', 'export.json')
+        downloadAnchorNode.style.display = 'none'
+        document.body.appendChild(downloadAnchorNode)
+        downloadAnchorNode.click()
+        document.body.removeChild(downloadAnchorNode)
+
+        this.bus.exportedGraph = xml // TEMP
       }
     }
   }

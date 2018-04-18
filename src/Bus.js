@@ -7,7 +7,8 @@ export const Bus = new Vue({
 
       zoom: 100,
 
-      libraries: []
+      libraries: [],
+      exportedGraph: null  // TEMP
     }
   }
 })
