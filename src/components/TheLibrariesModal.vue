@@ -17,7 +17,7 @@
 
     <div class="row no-gutters">
       <div class="libraries-list d-flex flex-column overflow-y-scroll col-4 pr-2">
-        <b-button-group v-for="library of availableLibraries"
+        <b-button-group v-for="library of libraries"
                         :key="library.id"
                         class="libraries-list__item d-flex w-100">
           <b-button class="libraries-list__item__title"
@@ -55,7 +55,7 @@
 
           <div class="d-flex flex-wrap">
             <div v-for="component of activeLibrary.components"
-                 :key="component.id"
+                 :key="component.name"
                  class="component-block"
                  :title="component.name"
                  v-html="component.el">
@@ -75,16 +75,14 @@
 
     data () {
       return {
-        bus: Bus,
-        availableLibraries: Bus.libraries,
-
         activeLibrary: null
       }
     },
 
-    created () {
-      this.bus.$on('select-library', library => this.selectLibrary(library))
-      this.bus.$on('deselect-library', library => this.deselectLibrary(library))
+    computed: {
+      libraries () {
+        return this.$store.state.libraries
+      }
     },
 
     methods: {
@@ -92,24 +90,16 @@
         this.activeLibrary = library
 
         if (!library.components.length) {
-          this.bus.$emit('load-library', library)
+          Bus.$emit('load-library', library)
         }
       },
 
       toggleLibrary (library) {
         if (library.selected) {
-          this.deselectLibrary(library)
+          this.$store.commit('setLibrarySelectionStatus', { libraryID: library.id, selected: false })
         } else {
-          this.selectLibrary(library)
+          this.$store.commit('setLibrarySelectionStatus', { libraryID: library.id, selected: true })
         }
-      },
-
-      selectLibrary (library) {
-        library.selected = true
-      },
-
-      deselectLibrary (library) {
-        library.selected = false
       }
     }
   }

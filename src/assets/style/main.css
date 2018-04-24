@@ -15,3 +15,9 @@ html, body {
   max-height: 100%;
   overflow-y: auto;
 }
+
+/* override Bootstrap' buttons style */
+.btn,
+.btn-group > .btn {
+  border-radius: 0;
+}

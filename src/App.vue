@@ -1,12 +1,16 @@
 <template>
   <div class="row no-gutters h-100">
-    <TheLeftSidebar id="left-sidebar" class="col-2 h-100"></TheLeftSidebar>
+    <TheLeftSidebar id="left-sidebar"
+                    class="col-2 h-100">
+    </TheLeftSidebar>
 
-    <div id="graph-container" class="col-8 h-100">
-      <TheGraph ref="graph"></TheGraph>
+    <div id="graph-container"
+         class="col-8 h-100">
+      <TheGraph></TheGraph>
     </div>
 
-    <div id="right-sidebar" class="col-2 h-100">
+    <div id="right-sidebar"
+         class="col-2 h-100">
       <TheRightSidebar></TheRightSidebar>
     </div>
   </div>
@@ -17,6 +21,8 @@
   import TheGraph from './components/TheGraph'
   import TheRightSidebar from './components/TheRightSidebar'
 
+  import commonLibraries from './common-libraries.json'
+
   export default {
     name: 'App',
 
@@ -26,23 +32,40 @@
       TheRightSidebar
     },
 
-    // data () {
-    //   return {
-    //     actualZoom: 100,
-    //   }
-    // },
-    //
-    // methods: {
-    //   zoomIn: function () {
-    //     this.$refs.graph.zoomIn()
-    //     this.actualZoom = this.$refs.graph.actualZoom
-    //   },
-    //
-    //   zoomOut: function () {
-    //     this.$refs.graph.zoomOut()
-    //     this.actualZoom = this.$refs.graph.actualZoom
-    //   },
-    // }
+    computed: {
+      libraries: {
+        get() {
+          return this.$store.state.libraries
+        },
+        set(libraries) {
+          this.$store.commit('setLibraries', libraries)
+        }
+      }
+    },
+
+    created () {
+      this.loadLibrariesList()
+    },
+
+    methods: {
+      async loadLibrariesList () {
+        // TODO: load user libs
+        let libs = {}
+        commonLibraries.forEach(library => {
+          library.components = []
+          library.selected = false
+          libs[library.id] = library
+        })
+        this.libraries = libs
+
+        // TEMP: select first 3 libs
+        Object.keys(this.libraries)
+          .slice(0, 3)
+          .forEach(libraryID => {
+            this.$store.commit('setLibrarySelectionStatus', { libraryID: libraryID, selected: true })
+          })
+      }
+    }
   }
 </script>
 

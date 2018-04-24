@@ -20,9 +20,26 @@
 
     created () {
       // defined not in data because to make them non-reactive
-      this.editor = null
-      this.graph = null
       this.keyHandler = null
+    },
+
+    computed: {
+      editor: {
+        get () {
+          return this.$store.state.editor
+        },
+        set (editor) {
+          this.$store.commit('setEditor', editor)
+        }
+      },
+      graph: {
+        get () {
+          return this.$store.state.graph
+        },
+        set (graph) {
+          this.$store.commit('setGraph', graph)
+        }
+      }
     },
 
     mounted () {
@@ -30,9 +47,9 @@
       $container.style.backgroundImage = `url(${window.mxBasePath}/images/grid.gif)`  // setup grid
 
       // mxgraph.mxGraphHandler.prototype.guidesEnabled = true
-      // mxgraph.mxConstants.GUIDE_COLOR = '#FF0000';
-      // mxgraph.mxConstants.GUIDE_STROKEWIDTH = 1;
-      // mxgraph.mxEdgeHandler.prototype.snapToTerminals = true;
+      // mxgraph.mxConstants.GUIDE_COLOR = '#FF0000'
+      // mxgraph.mxConstants.GUIDE_STROKEWIDTH = 1
+      // mxgraph.mxEdgeHandler.prototype.snapToTerminals = true
 
       this.editor = new mxgraph.mxEditor()
       this.editor.setGraphContainer($container)
@@ -47,45 +64,12 @@
       this.graph.setCellsResizable(false)
       this.graph.setPanning(true)
 
-      // style adjusting
-      let style = this.graph.getStylesheet().getDefaultEdgeStyle()
-      style[mxgraph.mxConstants.STYLE_EDGE] = mxgraph.mxEdgeStyle.OrthConnector
-      style[mxgraph.mxConstants.STYLE_ENDARROW] = 'none'
+      this.adjustGraphStyle()
 
-
-      this.graph.container.focus()  // set focus on graph
-
-      // console.log(this.editor)
-      // this.setTestState()
-
-      // let toolbar = new mxgraph.mxDefaultToolbar(document.getElementById('toolbar'), this.editor);
-      // toolbar.addItem('Copy', null, 'copy');
-      // let combo = toolbar.addActionCombo('More actions...');
-      // toolbar.addActionOption(combo, 'Paste', 'paste');
+      this.$el.focus()  // set focus on graph
     },
 
     methods: {
-      setTestState () {
-        // const shapes = this.registerLibrary('/static/components/electrical/resistors.xml')
-        // shapes.forEach(shapeName => this.insertShape(shapeName))
-
-        let parent = this.graph.getDefaultParent()
-        this.graph.getModel().beginUpdate()
-        try {
-          let v1 = this.graph.insertVertex(parent, null, { label: 'Hello,', data: 1234 }, 20, 20, 80, 30)
-          let v2 = this.graph.insertVertex(parent, null, 'World!', 200, 150, 80, 30)
-          let e1 = this.graph.insertEdge(parent, null, '', v1, v2)
-
-          // let v3 = this.graph.insertVertex(parent, null, '', 300, 200, 80, 30, 'shape=Attenuator')
-
-        } finally {
-          this.graph.getModel().endUpdate()
-        }
-
-
-        this.updateUndoManagerState()  // TODO
-      },
-
       setOverrides () {
         // custom value
         const convertValueToString = this.graph.convertValueToString
@@ -96,7 +80,7 @@
         }
 
         // TODO
-        // const cellLabelChanged = this.graph.cellLabelChanged;
+        // const cellLabelChanged = this.graph.cellLabelChanged
         // this.graph.cellLabelChanged = function(cell, newValue, autoSize) {
         //   console.log(newValue)
         //   if (cell != null && cell.value.label != null) {
@@ -116,20 +100,20 @@
         }
 
         // TODO: refactor
-        // TODO: explore wires example6
+        // TODO: explore wires example
         // Makes sure non-relative cells can only be connected via constraints
         // source: wires example
         this.graph.connectionHandler.isConnectableCell = function(cell) {
           if (this.graph.getModel().isEdge(cell)) {
-            return true;
+            return true
           } else {
-            const geo = (cell != null) ? this.graph.getCellGeometry(cell) : null;
-            return (geo != null) ? geo.relative : false;
+            const geo = (cell != null) ? this.graph.getCellGeometry(cell) : null
+            return (geo != null) ? geo.relative : false
           }
         }
         mxgraph.mxEdgeHandler.prototype.isConnectableCell = function(cell)
         {
-          return this.graph.connectionHandler.isConnectableCell(cell);
+          return this.graph.connectionHandler.isConnectableCell(cell)
         }
       },
 
@@ -143,22 +127,24 @@
         this.keyHandler.bindAction(keycode('a'), 'selectAll', true)  // select all on Ctrl + A
         this.editor.addListener(mxgraph.mxEvent.ESCAPE, () => { this.graph.clearSelection() })  // deselect on Esc
 
-        // move cells with arrow keys
         this.keyHandler.handler.bindKey(keycode('left'), () => { this.moveSelectedCells(-1, 0) })
         this.keyHandler.handler.bindKey(keycode('up'), () => { this.moveSelectedCells(0, -1) })
         this.keyHandler.handler.bindKey(keycode('right'), () => { this.moveSelectedCells(1, 0) })
         this.keyHandler.handler.bindKey(keycode('down'), () => { this.moveSelectedCells(0, 1) })
 
 
-        // this.keyHandler.bindAction(keycode('n'), 'new', true); // Ctrl+N
-        // this.keyHandler.bindAction(keycode('o'), 'open', true); // Ctrl+O
+        // this.keyHandler.bindAction(keycode('n'), 'new', true) // Ctrl + N
+        // this.keyHandler.bindAction(keycode('o'), 'open', true) // Ctrl + O
 
         // undo on Ctrl + Z
         this.keyHandler.bindAction(keycode('z'), 'undo', true)
         // redo on Ctrl + Shift + Z
         this.keyHandler.handler.bindControlShiftKey(keycode('z'), () => { this.editor.redo() })
 
-        this.graph.getModel().addListener(mxgraph.mxEvent.CHANGE, () => { this.updateUndoManagerState() })
+        this.graph.getModel().addListener(
+          mxgraph.mxEvent.CHANGE,
+          () => { this.$store.dispatch('updateUndoManagerState') }
+        )
 
         // this.graph.fireMouseEvent = function (evtName, me, sender) {
         //   console.log(evtName)
@@ -171,41 +157,20 @@
         this.graph.selectionModel.addListener(mxgraph.mxEvent.CHANGE, (sender, evt) => {
           let newSelection = evt.properties.removed != null ? evt.properties.removed: []
           let previousSelection = evt.properties.added != null ? evt.properties.added: []
-          Bus.$emit('cells-selection', newSelection, previousSelection)
+          this.handleComponentsSelection(newSelection, previousSelection)
         })
-
-        Bus.$on('zoom-in', () => {
-          this.graph.zoomIn()
-          this.updateZoomState()
-        })
-        Bus.$on('zoom-out', () => {
-          this.graph.zoomOut()
-          this.updateZoomState()
-        })
-        Bus.$on('zoom-reset', () => {
-          this.graph.zoomActual()
-          this.graph.center()
-          this.updateZoomState()
-        })
-        Bus.$on('undo', () => { this.editor.undo() })
-        Bus.$on('redo', () => { this.editor.redo() })
 
         Bus.$on('load-library', library => { this.loadLibrary(library) })
         Bus.$on(
           'insert-shape',
           (shapeName, shapeValue, coordinates) => { this.addComponentByStencil(shapeName, shapeValue, coordinates) }
         )
-        Bus.$on('graph-to-xml', () => { this.graphModelToXML() })
       },
 
-      /** Stores in the bus actual zoom in percents */
-      updateZoomState () {
-        Bus.zoom = Math.floor(this.graph.view.scale * 100)
-      },
-
-      updateUndoManagerState () {
-        Bus.canUndo = this.editor.undoManager.canUndo()
-        Bus.canRedo = this.editor.undoManager.canRedo()
+      adjustGraphStyle () {
+        let style = this.graph.getStylesheet().getDefaultEdgeStyle()
+        style[mxgraph.mxConstants.STYLE_EDGE] = mxgraph.mxEdgeStyle.OrthConnector
+        style[mxgraph.mxConstants.STYLE_ENDARROW] = 'none'
       },
 
       moveSelectedCells (dx=0, dy=0, byStep=true) {
@@ -217,6 +182,24 @@
 
         const selectedCells = this.graph.getSelectionCells()
         this.graph.moveCells(selectedCells, dx, dy)
+      },
+
+      handleComponentsSelection (selected, deselected) {
+        // TODO: consider edges selection
+        const deselectedComponents = deselected.filter(cell => cell.vertex)
+
+        // remove deselected components
+        let selectedComponents = this.$store.state.selectedComponents.slice(0)  // shallow copy
+        selectedComponents = selectedComponents
+          .filter(component => !deselectedComponents.find(cell => cell.value.id === component.id))
+
+        // add new selected components
+        const components = selected
+          .filter(cell => cell.vertex)
+          .map(cell => cell.value)
+        selectedComponents.push(...components)
+
+        this.$store.commit('setSelectedComponents', selectedComponents)
       },
 
       loadLibrary (library) {
@@ -252,12 +235,12 @@
           }
         })
 
-        library.components.push(...components)
+        this.$store.commit('setLibraryComponents', { libraryID: library.id, components: components })
       },
 
       addComponentByStencil (stencilName, shapeValue='', coords) {
-        const parent = this.editor.graph.getDefaultParent()
-        const model = this.editor.graph.model
+        const parent = this.graph.getDefaultParent()
+        const model = this.graph.model
         const style = `shape=${stencilName};`
 
         const stencil = mxgraph.mxStencilRegistry.getStencil(stencilName)
@@ -276,37 +259,10 @@
 
         model.beginUpdate()
         try {
-          this.editor.graph.insertVertex(parent, cellID, shapeValue, ...coords, style)
+          this.graph.insertVertex(parent, cellID, shapeValue, ...coords, style)
         } finally {
           model.endUpdate()
         }
-      },
-
-      graphModelToXML () {
-        const encoder = new mxgraph.mxCodec()
-        const result = encoder.encode(this.graph.getModel())
-        const xml = mxgraph.mxUtils.getXml(result)
-
-        // generate json-file with scheme description
-        // TEMP
-        const exp = {
-          date: Date.now(),
-          author: null,
-          title: null,
-          libraries: [],
-          scheme: xml
-        }
-        // https://stackoverflow.com/a/30800715/4729582
-        let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exp))
-        let downloadAnchorNode = document.createElement('a')
-        downloadAnchorNode.setAttribute('href', dataStr)
-        downloadAnchorNode.setAttribute('download', 'export.json')
-        downloadAnchorNode.style.display = 'none'
-        document.body.appendChild(downloadAnchorNode)
-        downloadAnchorNode.click()
-        document.body.removeChild(downloadAnchorNode)
-
-        this.bus.exportedGraph = xml // TEMP
       }
     }
   }

@@ -17,7 +17,9 @@
     "keycode": "^2.1.9",
     "open-iconic": "^1.1.1",
     "uuid": "^3.2.1",
-    "vue": "^2.5.2"
+    "vue": "^2.5.2",
+    "vue-resource": "^1.5.0",
+    "vuex": "^3.0.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.2.6",

@@ -17,35 +17,33 @@
 
         <div class="menu-item"
              title="Save"
-             v-b-modal.export-scheme-modal
              @click="exportGraph()">
           <span class="oi oi-box"></span>
         </div>
 
-        <!--<div class="menu-item" title="Login">-->
-          <!--<span class="oi oi-account-login"></span>-->
-        <!--</div>-->
-
-        <div class="menu-item" title="Settings">
+        <div class="menu-item"
+             title="Settings">
           <span class="oi oi-cog"></span>
         </div>
       </div>
     </div>
 
 
-
     <div class="components-panel overflow-y-scroll p-1">
-      <div v-for="library of selectedLibraries" :key="library.id" class="mb-1">
+      <div v-for="library of selectedLibraries"
+           :key="library.id"
+           class="mb-1">
         <b-btn class="w-100 mb-1"
                size="sm"
                variant="outline-secondary"
                v-b-toggle="'collapse-' + library.id"
-               :title="library.description"
-               @click="selectLibrary(library)">
+               :title="library.description">
           {{ library.name }}
         </b-btn>
 
-        <b-collapse class="w-100" :id="'collapse-' + library.id">
+        <b-collapse class="w-100"
+                    :id="'collapse-' + library.id"
+                    @show="selectLibrary(library)">
           <div class="d-flex flex-wrap">
             <div class="component-block"
                  v-for="component of library.components"
@@ -60,7 +58,9 @@
 
     <div class="bottom-block mt-auto w-100">
       <div class="p-1">
-        <b-btn class="w-100" size="sm" variant="outline-secondary"
+        <b-btn class="w-100"
+               size="sm"
+               variant="outline-secondary"
                v-b-modal.libraries-selection-modal>
           <span class="oi oi-folder"></span>
           Select Libraries
@@ -69,65 +69,46 @@
     </div>
 
     <TheLibrariesModal></TheLibrariesModal>
-
-    <b-modal id="export-scheme-modal"
-             title="Export Scheme"
-             hide-footer
-             size="lg">
-      {{ bus.exportedGraph }}
-    </b-modal>
   </div>
 </template>
 
 <script>
+  import uuid from 'uuid/v4'
+
   import TheLibrariesModal from './TheLibrariesModal'
   import { Bus } from '../Bus'
-
-  const uuid = require('uuid/v4')
-  let commonLibraries = require('../common-libraries.json')
 
   export default {
     name: 'TheLeftSidebar',
     components: { TheLibrariesModal },
 
     data () {
-      return {
-        bus: Bus,
-        libraries: Bus.libraries
-      }
+      return {}
     },
 
     computed: {
+      libraries () {
+          return this.$store.state.libraries
+      },
+
       selectedLibraries () {
-        return this.bus.libraries.filter(library => library.selected)
+        let selectedLibraries = {}
+
+        Object.entries(this.libraries)
+          .filter(([libraryID, library]) => library.selected)
+          .forEach(([libraryID, library]) => {
+            selectedLibraries[libraryID] = library
+          })
+        return selectedLibraries
       }
     },
 
-    mounted () {
-      this.loadLibrariesList()
-    },
-
     methods: {
-      async loadLibrariesList () {
-        // TODO: load user libs
-        // TODO: exclude excluded libs
-        // commonLibraries = commonLibraries.splice(0, 5)
-        commonLibraries.forEach(library => {
-          library.components = []
-          library.selected = false
-        })
-        this.libraries.push(...commonLibraries)
-
-        // TEMP
-        this.bus.$emit('select-library', this.bus.libraries[0])
-        this.bus.$emit('select-library', this.bus.libraries[1])
-        this.bus.$emit('select-library', this.bus.libraries[2])
-      },
-
       selectLibrary (library) {
         const componentsNotLoaded = !library.components.length
+
         if (componentsNotLoaded) {
-          this.bus.$emit('load-library', library)
+          Bus.$emit('load-library', library)
         }
       },
 
@@ -136,14 +117,31 @@
           label: '',
           id: `${library.name}:${component.name}:${uuid()}`,
           componentName: component.name,
-          libraryName: library.name,
-          params: {}
+          libraryName: library.name
         }
-        this.bus.$emit('insert-shape', component.name, componentData)
+        Bus.$emit('insert-shape', component.name, componentData)
       },
 
-      exportGraph () {
-        this.bus.$emit('graph-to-xml')
+      async exportGraph () {
+        const xml = await this.$store.dispatch('graphToXML')
+
+        // create graph description file
+        const exp = {
+          date: Date.now(),
+          author: null,
+          title: null,
+          libraries: [],
+          scheme: xml
+        }
+        // https://stackoverflow.com/a/30800715/4729582
+        let dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exp))
+        let downloadAnchorNode = document.createElement('a')
+        downloadAnchorNode.setAttribute('href', dataStr)
+        downloadAnchorNode.setAttribute('download', 'export.json')
+        downloadAnchorNode.style.display = 'none'
+        document.body.appendChild(downloadAnchorNode)
+        downloadAnchorNode.click()
+        document.body.removeChild(downloadAnchorNode)
       }
     }
   }
@@ -175,10 +173,6 @@
   /*>>> .dropdown-toggle {*/
   /*width: 100%;*/
   /*}*/
-
-  .btn {
-    border-radius: 0;
-  }
 
   .menu {
     background-color: #343a40;
