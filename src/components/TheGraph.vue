@@ -50,6 +50,7 @@
       // mxgraph.mxConstants.GUIDE_COLOR = '#FF0000'
       // mxgraph.mxConstants.GUIDE_STROKEWIDTH = 1
       // mxgraph.mxEdgeHandler.prototype.snapToTerminals = true
+      // mxgraph.mxVertexHandler.prototype.rotationEnabled = true
 
       this.editor = new mxgraph.mxEditor()
       this.editor.setGraphContainer($container)
@@ -127,11 +128,13 @@
         this.keyHandler.bindAction(keycode('a'), 'selectAll', true)  // select all on Ctrl + A
         this.editor.addListener(mxgraph.mxEvent.ESCAPE, () => { this.graph.clearSelection() })  // deselect on Esc
 
+        // rotate on R
+        this.keyHandler.handler.bindKey(keycode('r'), () => { this.rotateSelectedCells() })
+
         this.keyHandler.handler.bindKey(keycode('left'), () => { this.moveSelectedCells(-1, 0) })
         this.keyHandler.handler.bindKey(keycode('up'), () => { this.moveSelectedCells(0, -1) })
         this.keyHandler.handler.bindKey(keycode('right'), () => { this.moveSelectedCells(1, 0) })
         this.keyHandler.handler.bindKey(keycode('down'), () => { this.moveSelectedCells(0, 1) })
-
 
         // this.keyHandler.bindAction(keycode('n'), 'new', true) // Ctrl + N
         // this.keyHandler.bindAction(keycode('o'), 'open', true) // Ctrl + O
@@ -182,6 +185,15 @@
 
         const selectedCells = this.graph.getSelectionCells()
         this.graph.moveCells(selectedCells, dx, dy)
+      },
+
+      rotateSelectedCells () {
+        // TODO: continuously increases 'rotation' in cell style
+        // TODO: degrades performance because of atomic operations
+        const selectedCells = this.graph.getSelectionCells()
+        selectedCells.forEach(cell => {
+          mxgraph.mxVertexHandler.prototype.rotateCell.call(this.editor, cell, 90)
+        })
       },
 
       handleComponentsSelection (selected, deselected) {
