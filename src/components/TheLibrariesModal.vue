@@ -19,7 +19,7 @@
       <div class="libraries-list d-flex flex-column overflow-y-scroll col-4 pr-2">
         <b-button-group v-for="library of libraries"
                         :key="library.id"
-                        class="libraries-list__item d-flex w-100">
+                        class="libraries-list__item d-flex">
           <b-button class="libraries-list__item__title"
                     :pressed="activeLibrary && library.id === activeLibrary.id"
                     @click="showLibraryDescription(library)">
@@ -109,6 +109,11 @@
   .libraries-list, .library-description {
     max-height: 75vh;
   }
+
+  .libraries-list__item {
+     min-height: 2.5rem;  /* Chrome fix */
+   }
+
   .libraries-list__item:not(:first-child) {
     border-top: 1px solid #343a40;
   }

@@ -26,23 +26,23 @@
       </b-button-group>
     </div>
 
-    <h6 class="text-center w-100 bg-dark text-light mb-0 py-1">
+    <span class="bg-dark text-center text-light mb-0 py-1">
       Selected components
-    </h6>
+    </span>
 
     <div class="overflow-y-scroll">
       <div v-for="component of selectedComponents"
               :key="component.id"
               class="component-card mx-1 mt-1">
-         <!-- TODO -->
         <div class="row no-gutters mb-1">
           <span class="col-5 font-weight-bold">
-            Name
+            Component
           </span>
           <span class="col-7">
             {{ component.componentName }}
           </span>
         </div>
+
         <div class="row no-gutters mb-1">
           <span class="col-5 font-weight-bold">
             Library
@@ -51,54 +51,19 @@
             {{ component.libraryName }}
           </span>
         </div>
+
         <div class="row no-gutters mb-1">
           <span class="col-5 font-weight-bold">
-            ID
+            Name
           </span>
           <span class="col-7">
-            {{ component.id }}
+            <b-form-input type="text"
+                          size="sm"
+                          :value="component.name"
+                          @change="setComponentName(component, $event)">
+            </b-form-input>
           </span>
         </div>
-
-
-        <!--<div v-for="parameter of component.parameters"-->
-             <!--:key="parameter.title"-->
-             <!--class="row no-gutters mb-1">-->
-          <!--<span class="col-5 font-weight-bold">-->
-            <!--{{ parameter.title }}-->
-          <!--</span>-->
-          <!--<span class="col-7">-->
-            <!--<input type="text"-->
-                   <!--class="form-control"-->
-                   <!--:value="parameter.value">-->
-          <!--</span>-->
-        <!--</div>-->
-
-
-        <!--<div class="row no-gutters mb-1">-->
-          <!--<span class="col-5 font-weight-bold">-->
-            <!--Resistance (Om)-->
-          <!--</span>-->
-          <!--<span class="col-7">-->
-            <!--<input type="text" class="form-control" value="5">-->
-          <!--</span>-->
-        <!--</div>-->
-        <!--<div class="row no-gutters mb-1">-->
-          <!--<span class="col-5 font-weight-bold">-->
-            <!--Another parameter-->
-          <!--</span>-->
-          <!--<span class="col-7">-->
-            <!--<input type="text" class="form-control" value="Meow">-->
-          <!--</span>-->
-        <!--</div>-->
-        <!--<div class="row no-gutters mb-1">-->
-          <!--<span class="col-5 font-weight-bold">-->
-            <!--Yet another parameter-->
-          <!--</span>-->
-          <!--<span class="col-7">-->
-            <!--<input type="text" class="form-control" value="Woof">-->
-          <!--</span>-->
-        <!--</div>-->
       </div>
     </div>
   </div>
@@ -117,6 +82,10 @@
     },
 
     computed: {
+      graph () {
+        return this.$store.state.graph
+      },
+
       zoom () {
         return this.$store.state.zoom
       },
@@ -153,6 +122,11 @@
 
       zoomReset () {
         this.$store.dispatch('zoomReset')
+      },
+
+      setComponentName (component, newValue) {
+        const cell = this.graph.model.getCell(component.id)
+        this.graph.cellLabelChanged(cell, newValue)
       }
     }
   }

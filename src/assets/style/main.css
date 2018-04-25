@@ -18,6 +18,7 @@ html, body {
 
 /* override Bootstrap' buttons style */
 .btn,
-.btn-group > .btn {
+.btn-group > .btn,
+.form-control {
   border-radius: 0;
 }

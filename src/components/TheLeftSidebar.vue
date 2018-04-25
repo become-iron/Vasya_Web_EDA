@@ -114,25 +114,27 @@
 
       addComponent (library, component) {
         const componentData = {
-          label: '',
           id: `${library.name}:${component.name}:${uuid()}`,
           componentName: component.name,
-          libraryName: library.name
+          libraryName: library.name,
+          name: ''
         }
         Bus.$emit('insert-shape', component.name, componentData)
       },
 
       async exportGraph () {
+        // TODO
         const xml = await this.$store.dispatch('graphToXML')
-
-        // create graph description file
+        const selectedLibrariesIDs = Object.keys(this.selectedLibraries)
         const exp = {
           date: Date.now(),
           author: null,
           title: null,
-          libraries: [],
+          libraries: selectedLibrariesIDs,
           scheme: xml
         }
+
+        // create graph description file
         // https://stackoverflow.com/a/30800715/4729582
         let dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exp))
         let downloadAnchorNode = document.createElement('a')

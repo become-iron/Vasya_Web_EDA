@@ -75,22 +75,21 @@
         // custom value
         const convertValueToString = this.graph.convertValueToString
         this.graph.convertValueToString = function (cell) {
-          return (cell != null && cell.value.label != null) ?
-            cell.value.label :
+          return (cell != null && cell.value.name != null) ?
+            cell.value.name :
             convertValueToString.apply(this, [cell])
         }
 
-        // TODO
-        // const cellLabelChanged = this.graph.cellLabelChanged
-        // this.graph.cellLabelChanged = function(cell, newValue, autoSize) {
-        //   console.log(newValue)
-        //   if (cell != null && cell.value.label != null) {
-        //     newValue = Object.assign({}, cell.value)
-        //     newValue.label = newValue
-        //   }
-        //
-        //   cellLabelChanged.apply(this, [cell, newValue, autoSize])
-        // }
+        const cellLabelChanged = this.graph.cellLabelChanged
+        this.graph.cellLabelChanged = function(cell, newValue, autoSize) {
+          if (cell != null && cell.value.name != null) {
+            const name = newValue
+            newValue = Object.assign({}, cell.value)
+            newValue.name = name
+          }
+
+          cellLabelChanged.call(this, cell, newValue, autoSize)
+        }
 
         // TODO: refactor
         // enables connect preview for the default edge style
@@ -129,7 +128,7 @@
         this.editor.addListener(mxgraph.mxEvent.ESCAPE, () => { this.graph.clearSelection() })  // deselect on Esc
 
         // rotate on R
-        this.keyHandler.handler.bindKey(keycode('r'), () => { this.rotateSelectedCells() })
+        this.keyHandler.handler.bindKey(keycode('space'), () => { this.rotateSelectedCells() })
 
         this.keyHandler.handler.bindKey(keycode('left'), () => { this.moveSelectedCells(-1, 0) })
         this.keyHandler.handler.bindKey(keycode('up'), () => { this.moveSelectedCells(0, -1) })
