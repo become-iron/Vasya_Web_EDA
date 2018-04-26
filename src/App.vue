@@ -26,18 +26,14 @@
   export default {
     name: 'App',
 
-    components: {
-      TheLeftSidebar,
-      TheGraph,
-      TheRightSidebar
-    },
+    components: { TheLeftSidebar, TheGraph, TheRightSidebar },
 
     computed: {
       libraries: {
-        get() {
+        get () {
           return this.$store.state.libraries
         },
-        set(libraries) {
+        set (libraries) {
           this.$store.commit('setLibraries', libraries)
         }
       }
@@ -53,7 +49,6 @@
         let libs = {}
         commonLibraries.forEach(library => {
           library.components = []
-          library.selected = false
           libs[library.id] = library
         })
         this.libraries = libs
@@ -62,7 +57,7 @@
         Object.keys(this.libraries)
           .slice(0, 3)
           .forEach(libraryID => {
-            this.$store.commit('setLibrarySelectionStatus', { libraryID: libraryID, selected: true })
+            this.$store.commit('selectLibrary', libraryID)
           })
       }
     }

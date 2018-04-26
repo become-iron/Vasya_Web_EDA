@@ -92,14 +92,7 @@
       },
 
       selectedLibraries () {
-        let selectedLibraries = {}
-
-        Object.entries(this.libraries)
-          .filter(([libraryID, library]) => library.selected)
-          .forEach(([libraryID, library]) => {
-            selectedLibraries[libraryID] = library
-          })
-        return selectedLibraries
+        return this.$store.getters.selectedLibraries
       }
     },
 

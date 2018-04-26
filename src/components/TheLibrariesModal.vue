@@ -28,7 +28,7 @@
 
           <b-button class="libraries-list__item__checkbox"
                     @click="toggleLibrary(library)">
-            <span :class="library.selected ? 'oi oi-check checked' : 'oi oi-x'"></span>
+            <span :class="librariesSelectionStatus[library.id] ? 'oi oi-check checked' : 'oi oi-x'"></span>
           </b-button>
         </b-button-group>
       </div>
@@ -82,6 +82,14 @@
     computed: {
       libraries () {
         return this.$store.state.libraries
+      },
+
+      librariesSelectionStatus () {
+        const result = {}
+        Object.keys(this.$store.state.libraries).forEach(libraryID => {
+          result[libraryID] = this.$store.state.selectedLibrariesIDs.includes(libraryID)
+        })
+        return result
       }
     },
 
@@ -95,10 +103,12 @@
       },
 
       toggleLibrary (library) {
-        if (library.selected) {
-          this.$store.commit('setLibrarySelectionStatus', { libraryID: library.id, selected: false })
+        const deselect = this.librariesSelectionStatus[library.id]
+
+        if (deselect) {
+          this.$store.commit('deselectLibrary', library.id)
         } else {
-          this.$store.commit('setLibrarySelectionStatus', { libraryID: library.id, selected: true })
+          this.$store.commit('selectLibrary', library.id)
         }
       }
     }

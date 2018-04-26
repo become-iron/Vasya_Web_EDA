@@ -15,8 +15,15 @@ export default new Vuex.Store({
     canRedo: false,
 
     libraries: [],
+    selectedLibrariesIDs: [],
 
     selectedComponents: []
+  },
+
+  getters: {
+    selectedLibraries (state) {
+      return state.selectedLibrariesIDs.map(libraryID => state.libraries[libraryID])
+    }
   },
 
   mutations: {
@@ -44,8 +51,12 @@ export default new Vuex.Store({
       state.libraries = libraries
     },
 
-    setLibrarySelectionStatus (state, { libraryID, selected }) {
-      state.libraries[libraryID].selected = selected
+    selectLibrary (state, libraryID) {
+      state.selectedLibrariesIDs.push(libraryID)
+    },
+
+    deselectLibrary (state, libraryID) {
+      state.selectedLibrariesIDs.splice(state.selectedLibrariesIDs.indexOf(libraryID), 1)
     },
 
     setLibraryComponents (state, { libraryID, components }) {
