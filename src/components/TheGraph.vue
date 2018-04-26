@@ -127,7 +127,7 @@
         this.keyHandler.bindAction(keycode('a'), 'selectAll', true)  // select all on Ctrl + A
         this.editor.addListener(mxgraph.mxEvent.ESCAPE, () => { this.graph.clearSelection() })  // deselect on Esc
 
-        // rotate on R
+        // rotate on Space
         this.keyHandler.handler.bindKey(keycode('space'), () => { this.rotateSelectedCells() })
 
         this.keyHandler.handler.bindKey(keycode('left'), () => { this.moveSelectedCells(-1, 0) })
@@ -188,11 +188,13 @@
 
       rotateSelectedCells () {
         // TODO: continuously increases 'rotation' in cell style
-        // TODO: degrades performance because of atomic operations
         const selectedCells = this.graph.getSelectionCells()
+
+        this.graph.model.beginUpdate()
         selectedCells.forEach(cell => {
           mxgraph.mxVertexHandler.prototype.rotateCell.call(this.editor, cell, 90)
         })
+        this.graph.model.endUpdate()
       },
 
       handleComponentsSelection (selected, deselected) {
