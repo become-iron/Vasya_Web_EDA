@@ -52,6 +52,11 @@
       // mxgraph.mxEdgeHandler.prototype.snapToTerminals = true
       // mxgraph.mxVertexHandler.prototype.rotationEnabled = true
 
+      // mxgraph.mxConnectionHandler.prototype.waypointsEnabled = true
+      // mxgraph.mxGraph.prototype.resetEdgesOnConnect = false
+      mxgraph.mxConstraintHandler.prototype.pointImage =
+        new mxgraph.mxImage(`${window.mxBasePath}/images/dot.gif`, 10, 10)
+
       this.editor = new mxgraph.mxEditor()
       this.editor.setGraphContainer($container)
       this.graph = this.editor.graph
@@ -64,6 +69,7 @@
       this.graph.setConnectableEdges(true)
       this.graph.setCellsResizable(false)
       this.graph.setPanning(true)
+      this.graph.setEnterStopsCellEditing(true)
 
       this.adjustGraphStyle()
 
@@ -75,13 +81,17 @@
         // custom value
         const convertValueToString = this.graph.convertValueToString
         this.graph.convertValueToString = function (cell) {
-          return (cell != null && cell.value.name != null) ?
-            cell.value.name :
-            convertValueToString.apply(this, [cell])
+          if (cell != null && cell.value.name != null) {
+            return cell.value.name === '' ?
+                   `${cell.value.componentName}` :
+                   `${cell.value.componentName}\n${cell.value.name}`
+          } else {
+            return convertValueToString.call(this, cell)
+          }
         }
 
         const cellLabelChanged = this.graph.cellLabelChanged
-        this.graph.cellLabelChanged = function(cell, newValue, autoSize) {
+        this.graph.cellLabelChanged = function (cell, newValue, autoSize) {
           if (cell != null && cell.value.name != null) {
             const name = newValue
             newValue = Object.assign({}, cell.value)
@@ -91,16 +101,24 @@
           cellLabelChanged.call(this, cell, newValue, autoSize)
         }
 
-        // TODO: refactor
+        const getInitialValue = mxgraph.mxCellEditor.prototype.getInitialValue
+        mxgraph.mxCellEditor.prototype.getInitialValue = function (state, trigger) {
+          const cell = state.cell
+
+          if (cell != null && cell.value.name != null) {
+            return cell.value.name
+          } else {
+            return getInitialValue.call(this, state, trigger)
+          }
+        }
+
         // enables connect preview for the default edge style
         // source: anchors example
-        this.graph.connectionHandler.createEdgeState = function(me) {
+        this.graph.connectionHandler.createEdgeState = function (me) {
           const edge = this.graph.createEdge(null, null, null, null, null)
           return new mxgraph.mxCellState(this.graph.view, edge, this.graph.getCellStyle(edge))
         }
 
-        // TODO: refactor
-        // TODO: explore wires example
         // Makes sure non-relative cells can only be connected via constraints
         // source: wires example
         this.graph.connectionHandler.isConnectableCell = function(cell) {
@@ -111,15 +129,32 @@
             return (geo != null) ? geo.relative : false
           }
         }
-        mxgraph.mxEdgeHandler.prototype.isConnectableCell = function(cell)
-        {
+        mxgraph.mxEdgeHandler.prototype.isConnectableCell = function(cell) {
           return this.graph.connectionHandler.isConnectableCell(cell)
         }
+
+        // Adds oval markers for edge-to-edge connections.
+        const getCellStyle = mxgraph.mxGraph.prototype.getCellStyle;
+        mxgraph.mxGraph.prototype.getCellStyle = function(cell) {
+          let style = getCellStyle.apply(this, arguments);
+
+          if (style != null && this.model.isEdge(cell)) {
+            style = mxgraph.mxUtils.clone(style);
+
+            if (this.model.isEdge(this.model.getTerminal(cell, true))) {
+              style['startArrow'] = 'oval';
+            }
+
+            if (this.model.isEdge(this.model.getTerminal(cell, false))) {
+              style['endArrow'] = 'oval';
+            }
+          }
+
+          return style;
+        };
       },
 
       setListeners () {
-        // console.log(this.keyHandler)
-        // console.log(this.keyHandler.handler)
         this.keyHandler.bindAction(keycode('c'), 'copy', true)  // copy on Ctrl + C
         this.keyHandler.bindAction(keycode('v'), 'paste', true)  // paste on Ctrl + V
         this.keyHandler.bindAction(keycode('x'), 'cut', true)  // cut on Ctrl + X
@@ -171,8 +206,35 @@
 
       adjustGraphStyle () {
         let style = this.graph.getStylesheet().getDefaultEdgeStyle()
-        style[mxgraph.mxConstants.STYLE_EDGE] = mxgraph.mxEdgeStyle.OrthConnector
-        style[mxgraph.mxConstants.STYLE_ENDARROW] = 'none'
+
+        let strokeWidth = 2
+        let labelBackground = '#FFFFFF'
+        let fontColor = '#000000'
+        let strokeColor = '#343a40'
+
+        style['edgeStyle'] = mxgraph.mxEdgeStyle.OrthConnector
+        delete style['startArrow']
+        delete style['endArrow']
+        style['strokeColor'] = strokeColor
+        style['labelBackgroundColor'] = labelBackground
+        style['fontColor'] = fontColor
+        style['fontSize'] = '9'
+        style['movable'] = '0'
+        style['strokeWidth'] = strokeWidth
+
+        style = this.graph.getStylesheet().getDefaultVertexStyle()
+        style['verticalAlign'] = 'bottom'
+        style['verticalLabelPosition'] = 'top'
+
+        style['gradientDirection'] = 'south'
+        style['strokeColor'] = strokeColor
+        style['fillColor'] = 'none'
+        style['fontColor'] = fontColor
+        style['fontStyle'] = '1'
+        style['fontSize'] = '12'
+        style['resizable'] = '0'
+        style['rounded'] = '1'
+        style['strokeWidth'] = strokeWidth
       },
 
       moveSelectedCells (dx=0, dy=0, byStep=true) {
@@ -227,7 +289,24 @@
             const stencil = new mxgraph.mxStencil(shape)
             mxgraph.mxStencilRegistry.addStencil(stencilName, stencil)
 
-            let graph = new mxgraph.mxGraph(document.createElement('div'))
+            const graph = new mxgraph.mxGraph(document.createElement('div'))
+
+            // adjust style
+            // TODO: optimize
+            const strokeWidth = 1.5
+            const fontColor = '#000000'
+            const strokeColor = '#343a40'
+
+            const style = graph.getStylesheet().getDefaultVertexStyle()
+            style['strokeColor'] = strokeColor
+            style['fillColor'] = 'none'
+            style['fontColor'] = fontColor
+            style['fontStyle'] = '4'
+            style['fontSize'] = '30'
+            style['resizable'] = '0'
+            style['rounded'] = '1'
+            style['strokeWidth'] = strokeWidth
+
             const parent = graph.getDefaultParent()
             // TEMP: prettify it
             const containerSize = 48  // TODO: not quite container size
