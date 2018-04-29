@@ -97,8 +97,8 @@
       showLibraryDescription (library) {
         this.activeLibrary = library
 
-        if (!library.components.length) {
-          Bus.$emit('load-library', library)
+        if (!library.thumbnails) {
+          Bus.$emit('prepare-thumbnails', library)
         }
       },
 

@@ -48,7 +48,7 @@
         // TODO: load user libs
         let libs = {}
         commonLibraries.forEach(library => {
-          library.components = []
+          library.thumbnails = false  // whether the thumbnails is created
           libs[library.id] = library
         })
         this.libraries = libs

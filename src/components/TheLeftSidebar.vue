@@ -98,10 +98,8 @@
 
     methods: {
       selectLibrary (library) {
-        const componentsNotLoaded = !library.components.length
-
-        if (componentsNotLoaded) {
-          Bus.$emit('load-library', library)
+        if (!library.thumbnails) {
+          Bus.$emit('prepare-thumbnails', library)
         }
       },
 

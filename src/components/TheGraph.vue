@@ -197,7 +197,7 @@
           this.handleComponentsSelection(newSelection, previousSelection)
         })
 
-        Bus.$on('load-library', library => { this.loadLibrary(library) })
+        Bus.$on('prepare-thumbnails', library => { this.prepareThumbnails(library) })
         Bus.$on(
           'insert-shape',
           (shapeName, shapeValue, coordinates) => { this.addComponentByStencil(shapeName, shapeValue, coordinates) }
@@ -277,57 +277,81 @@
         this.$store.commit('setSelectedComponents', selectedComponents)
       },
 
-      loadLibrary (library) {
-        const req = mxgraph.mxUtils.load(library.url)
-        const root = req.getDocumentElement()
+      prepareThumbnails (library) {
+        const noComponents = !library.components.length
 
-        let components = []
+        // first load stencils
+        if (noComponents) {
+          const req = mxgraph.mxUtils.load(library.url)
+          const root = req.getDocumentElement()
 
-        root.childNodes.forEach(shape => {
-          if (shape.nodeType === mxgraph.mxConstants.NODETYPE_ELEMENT) {
+          let components = []
+
+          root.childNodes.forEach(shape => {
+            if (shape.nodeType !== mxgraph.mxConstants.NODETYPE_ELEMENT) {
+              return
+            }
+
             const stencilName = shape.getAttribute('name')
             const stencil = new mxgraph.mxStencil(shape)
-            mxgraph.mxStencilRegistry.addStencil(stencilName, stencil)
-
-            const graph = new mxgraph.mxGraph(document.createElement('div'))
-
-            // adjust style
-            // TODO: optimize
-            const strokeWidth = 1.5
-            const fontColor = '#000000'
-            const strokeColor = '#343a40'
-
-            const style = graph.getStylesheet().getDefaultVertexStyle()
-            style['strokeColor'] = strokeColor
-            style['fillColor'] = 'none'
-            style['fontColor'] = fontColor
-            style['fontStyle'] = '4'
-            style['fontSize'] = '30'
-            style['resizable'] = '0'
-            style['rounded'] = '1'
-            style['strokeWidth'] = strokeWidth
-
-            const parent = graph.getDefaultParent()
-            // TEMP: prettify it
-            const containerSize = 48  // TODO: not quite container size
-            const baseOffset = 2
-            const scale = containerSize / Math.max(stencil.w0, stencil.h0)
-            const width = Math.trunc(stencil.w0 * scale)
-            const height = Math.trunc(stencil.h0 * scale)
-            const topOffset = Math.trunc((containerSize - height) / 2) + baseOffset
-            const leftOffset = Math.trunc((containerSize - width) / 2) + baseOffset
-            graph.insertVertex(parent, null, '', leftOffset, topOffset, width, height, `shape=${stencilName};`)
+            const thumbnail = this.prepareThumbnailByStencil(stencilName, stencil)
 
             components.push({
               name: stencilName,
               // stencil: shape.outerHTML,
-              // stencil: mxgraph.mxUtils.getTextContent(shape),
-              el: graph.container.innerHTML
+              el: thumbnail
             })
-          }
-        })
+          })
 
-        this.$store.commit('setLibraryComponents', { libraryID: library.id, components: components })
+          this.$store.commit('setLibraryComponents', { libraryID: library.id, components: components })
+        } else {
+          library.components.forEach(component => {
+            const stencilName = component.name
+            const stencil = component.stencil
+
+            const parsedStencilDescription = mxgraph.mxUtils.parseXml(stencil).activeElement
+            const preparedStencil = new mxgraph.mxStencil(parsedStencilDescription)
+            const thumbnail = this.prepareThumbnailByStencil(stencilName, preparedStencil)
+            // TODO: replace with mutation
+            this.$set(component, 'el', thumbnail)
+          })
+        }
+
+      },
+
+      prepareThumbnailByStencil (stencilName, stencil) {
+        mxgraph.mxStencilRegistry.addStencil(stencilName, stencil)
+
+        const graph = new mxgraph.mxGraph(document.createElement('div'))
+
+        // adjust style
+        // TODO: optimize
+        const strokeWidth = 1.5
+        const fontColor = '#000000'
+        const strokeColor = '#343a40'
+
+        const style = graph.getStylesheet().getDefaultVertexStyle()
+        style['strokeColor'] = strokeColor
+        style['fillColor'] = 'none'
+        style['fontColor'] = fontColor
+        style['fontStyle'] = '4'
+        style['fontSize'] = '30'
+        style['resizable'] = '0'
+        style['rounded'] = '1'
+        style['strokeWidth'] = strokeWidth
+
+        const parent = graph.getDefaultParent()
+        // TEMP: prettify it
+        const containerSize = 48  // TODO: not quite container size
+        const baseOffset = 2
+        const scale = containerSize / Math.max(stencil.w0, stencil.h0)
+        const width = Math.trunc(stencil.w0 * scale)
+        const height = Math.trunc(stencil.h0 * scale)
+        const topOffset = Math.trunc((containerSize - height) / 2) + baseOffset
+        const leftOffset = Math.trunc((containerSize - width) / 2) + baseOffset
+        graph.insertVertex(parent, null, '', leftOffset, topOffset, width, height, `shape=${stencilName};`)
+
+        return graph.container.innerHTML
       },
 
       addComponentByStencil (stencilName, shapeValue='', coords) {
