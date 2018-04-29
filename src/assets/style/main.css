@@ -22,3 +22,14 @@ html, body {
 .form-control {
   border-radius: 0;
 }
+
+/* override mxgraph styles */
+.mxRubberband {
+  border-color: #343a40 !important;
+  background: #e5e9f2 !important;
+}
+
+.mxTooltip {
+  background: #ffffff !important;
+  box-shadow: none !important;
+}

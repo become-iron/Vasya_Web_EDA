@@ -1,4 +1,4 @@
-<!--suppress JSPotentiallyInvalidConstructorUsage -->
+<!--suppress JSPotentiallyInvalidConstructorUsage-->
 <template>
   <div id="graph" class="w-100 h-100"></div>
 </template>
@@ -12,15 +12,8 @@
   export default {
     name: 'TheGraph',
 
-    data: function () {
-      return {
-        bus: Bus
-      }
-    },
-
-    created () {
-      // defined not in data because to make them non-reactive
-      this.keyHandler = null
+    data () {
+      return {}
     },
 
     computed: {
@@ -32,6 +25,7 @@
           this.$store.commit('setEditor', editor)
         }
       },
+
       graph: {
         get () {
           return this.$store.state.graph
@@ -39,6 +33,10 @@
         set (graph) {
           this.$store.commit('setGraph', graph)
         }
+      },
+
+      keyHandler () {
+        return this.$store.state.editor.keyHandler
       }
     },
 
@@ -46,38 +44,53 @@
       let $container = this.$el
       $container.style.backgroundImage = `url(${window.mxBasePath}/images/grid.gif)`  // setup grid
 
-      // mxgraph.mxGraphHandler.prototype.guidesEnabled = true
-      // mxgraph.mxConstants.GUIDE_COLOR = '#FF0000'
-      // mxgraph.mxConstants.GUIDE_STROKEWIDTH = 1
-      // mxgraph.mxEdgeHandler.prototype.snapToTerminals = true
-      // mxgraph.mxVertexHandler.prototype.rotationEnabled = true
-
-      // mxgraph.mxConnectionHandler.prototype.waypointsEnabled = true
-      // mxgraph.mxGraph.prototype.resetEdgesOnConnect = false
-      mxgraph.mxConstraintHandler.prototype.pointImage =
-        new mxgraph.mxImage(`${window.mxBasePath}/images/dot.gif`, 10, 10)
+      this.setStyleOverrides()
 
       this.editor = new mxgraph.mxEditor()
       this.editor.setGraphContainer($container)
       this.graph = this.editor.graph
-      this.keyHandler = this.editor.keyHandler
 
-      this.setOverrides()
-      this.setListeners()
-
-      this.graph.setConnectable(true)
-      this.graph.setConnectableEdges(true)
-      this.graph.setCellsResizable(false)
-      this.graph.setPanning(true)
-      this.graph.setEnterStopsCellEditing(true)
-
+      this.setGraphOverrides()
+      this.adjustGraphSettings()
       this.adjustGraphStyle()
+      this.setListeners()
 
       this.$el.focus()  // set focus on graph
     },
 
     methods: {
-      setOverrides () {
+      setStyleOverrides () {
+        mxgraph.mxConstraintHandler.prototype.pointImage =
+          new mxgraph.mxImage(`${window.mxBasePath}/images/dot.gif`, 10, 10)
+
+        // mxgraph.mxConstants.DEFAULT_VALID_COLOR = '#343a40'
+        // mxgraph.mxConstants.HIGHLIGHT_COLOR = '#343a40'
+        // mxgraph.mxConstants.OUTLINE_HIGHLIGHT_COLOR = 'none'
+        mxgraph.mxConstants.VALID_COLOR = '#343a40'
+
+        // the selection border
+        mxgraph.mxConstants.EDGE_SELECTION_COLOR = '#343a40'
+        mxgraph.mxConstants.VERTEX_SELECTION_COLOR = '#343a40'
+
+        // connected end of edge
+        mxgraph.mxConstants.CONNECT_HANDLE_FILLCOLOR = '#343a40'
+        //
+        mxgraph.mxConstants.HANDLE_FILLCOLOR = '#343a40'
+
+        // mxgraph.mxConstants.VERTEX_SELECTION_STROKEWIDTH = 2
+        // mxgraph.mxConstants.EDGE_SELECTION_STROKEWIDTH = 2
+
+        // mxgraph.mxGraphHandler.prototype.guidesEnabled = true
+        // mxgraph.mxConstants.GUIDE_COLOR = '#FF0000'
+        // mxgraph.mxConstants.GUIDE_STROKEWIDTH = 1
+        // mxgraph.mxEdgeHandler.prototype.snapToTerminals = true
+        // mxgraph.mxVertexHandler.prototype.rotationEnabled = true
+
+        // mxgraph.mxConnectionHandler.prototype.waypointsEnabled = true
+        // mxgraph.mxGraph.prototype.resetEdgesOnConnect = false
+      },
+
+      setGraphOverrides () {
         // custom value
         const convertValueToString = this.graph.convertValueToString
         this.graph.convertValueToString = function (cell) {
@@ -163,7 +176,8 @@
         this.editor.addListener(mxgraph.mxEvent.ESCAPE, () => { this.graph.clearSelection() })  // deselect on Esc
 
         // rotate on Space
-        this.keyHandler.handler.bindKey(keycode('space'), () => { this.rotateSelectedCells() })
+        // FIXME
+        // this.keyHandler.handler.bindKey(keycode('space'), () => { this.rotateSelectedCells() })
 
         this.keyHandler.handler.bindKey(keycode('left'), () => { this.moveSelectedCells(-1, 0) })
         this.keyHandler.handler.bindKey(keycode('up'), () => { this.moveSelectedCells(0, -1) })
@@ -204,14 +218,24 @@
         )
       },
 
+      adjustGraphSettings () {
+        this.graph.setConnectable(true)
+        this.graph.setConnectableEdges(true)
+        this.graph.setCellsResizable(false)
+        this.graph.setPanning(true)
+        this.graph.setEnterStopsCellEditing(true)
+      },
+
       adjustGraphStyle () {
+        this.editor.rubberband.defaultOpacity = 40
+
+        // TODO
+        const strokeWidth = 2
+        const labelBackground = '#FFFFFF'
+        const fontColor = '#000000'
+        const strokeColor = '#343a40'
+
         let style = this.graph.getStylesheet().getDefaultEdgeStyle()
-
-        let strokeWidth = 2
-        let labelBackground = '#FFFFFF'
-        let fontColor = '#000000'
-        let strokeColor = '#343a40'
-
         style['edgeStyle'] = mxgraph.mxEdgeStyle.OrthConnector
         delete style['startArrow']
         delete style['endArrow']
@@ -248,16 +272,16 @@
         this.graph.moveCells(selectedCells, dx, dy)
       },
 
-      rotateSelectedCells () {
-        // TODO: continuously increases 'rotation' in cell style
-        const selectedCells = this.graph.getSelectionCells()
-
-        this.graph.model.beginUpdate()
-        selectedCells.forEach(cell => {
-          mxgraph.mxVertexHandler.prototype.rotateCell.call(this.editor, cell, 90)
-        })
-        this.graph.model.endUpdate()
-      },
+      // rotateSelectedCells () {
+      //   // TODO: continuously increases 'rotation' in cell style
+      //   const selectedCells = this.graph.getSelectionCells()
+      //
+      //   this.graph.model.beginUpdate()
+      //   selectedCells.forEach(cell => {
+      //     mxgraph.mxVertexHandler.prototype.rotateCell.call(this.editor, cell, 90)
+      //   })
+      //   this.graph.model.endUpdate()
+      // },
 
       handleComponentsSelection (selected, deselected) {
         // TODO: consider edges selection
