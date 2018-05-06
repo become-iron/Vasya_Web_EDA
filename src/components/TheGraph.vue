@@ -333,7 +333,7 @@
             const stencilName = component.name
             const stencil = component.stencil
 
-            const parsedStencilDescription = mxgraph.mxUtils.parseXml(stencil).activeElement
+            const parsedStencilDescription = mxgraph.mxUtils.parseXml(stencil).documentElement
             const preparedStencil = new mxgraph.mxStencil(parsedStencilDescription)
             const thumbnail = this.prepareThumbnailByStencil(stencilName, preparedStencil)
             // TODO: replace with mutation
