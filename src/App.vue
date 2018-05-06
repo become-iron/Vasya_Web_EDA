@@ -21,7 +21,7 @@
   import TheGraph from './components/TheGraph'
   import TheRightSidebar from './components/TheRightSidebar'
 
-  import commonLibraries from './common-libraries.json'
+  import commonLibraries from './resources/common-libraries.json'
 
   export default {
     name: 'App',

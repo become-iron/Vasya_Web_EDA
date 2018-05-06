@@ -86,8 +86,11 @@
 
       librariesSelectionStatus () {
         const result = {}
-        Object.keys(this.$store.state.libraries).forEach(libraryID => {
-          result[libraryID] = this.$store.state.selectedLibrariesIDs.includes(libraryID)
+        this.$store.state.selectedLibrariesIDs.forEach(libraryID => {
+          result[libraryID] = true
+        })
+        Object.keys(this.libraries).forEach(libraryID => {
+          result[libraryID] = libraryID in result
         })
         return result
       }
@@ -128,22 +131,18 @@
     border-top: 1px solid #343a40;
   }
 
-  .libraries-list__item .btn {
-    border-radius: 0;
-  }
-
-  .libraries-list__item__title {
-    border-right: 1px solid #343a40;
+  .libraries-list__item .libraries-list__item__title {
     flex-grow: 1;
     overflow: hidden;
     text-align: left;
+    border-right: 1px solid #343a40;
   }
 
-  .libraries-list__item__checkbox {
+  .libraries-list__item .libraries-list__item__checkbox {
     border-left: 1px solid #343a40;
   }
 
-  .libraries-list__item__checkbox .checked {
+  .libraries-list__item .libraries-list__item__checkbox .checked {
     color: #a8ffa5;
   }
 

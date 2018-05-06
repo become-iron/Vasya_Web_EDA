@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex flex-column h-100">
     <div class="d-flex menu w-100">
-      <div class="menu-title " title="Basil EDA">
+      <div class="menu__title" title="Basil EDA">
         Basil EDA
       </div>
 
@@ -10,18 +10,24 @@
       <!--</div>-->
 
       <div class="ml-auto">
-        <div class="menu-item"
+        <div class="menu__item"
              title="New">
           <span class="oi oi-document"></span>
         </div>
 
-        <div class="menu-item"
-             title="Save"
+        <div class="menu__item"
+             title="Export"
              @click="exportGraph()">
           <span class="oi oi-box"></span>
         </div>
 
-        <div class="menu-item"
+        <div class="menu__item"
+             title="Export netlist"
+             @click="exportNetlist()">
+          <span class="oi oi-arrow-thick-right"></span>
+        </div>
+
+        <div class="menu__item"
              title="Settings">
           <span class="oi oi-cog"></span>
         </div>
@@ -75,8 +81,8 @@
 <script>
   import uuid from 'uuid/v4'
 
-  import TheLibrariesModal from './TheLibrariesModal'
   import { Bus } from '../Bus'
+  import TheLibrariesModal from './TheLibrariesModal'
 
   export default {
     name: 'TheLeftSidebar',
@@ -116,7 +122,7 @@
       async exportGraph () {
         // TODO
         const xml = await this.$store.dispatch('graphToXML')
-        const selectedLibrariesIDs = Object.keys(this.selectedLibraries)
+        const selectedLibrariesIDs = this.$store.state.selectedLibrariesIDs
         const exp = {
           date: Date.now(),
           author: null,
@@ -127,14 +133,40 @@
 
         // create graph description file
         // https://stackoverflow.com/a/30800715/4729582
-        let dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exp))
-        let downloadAnchorNode = document.createElement('a')
+        const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exp))
+        const downloadAnchorNode = document.createElement('a')
         downloadAnchorNode.setAttribute('href', dataStr)
         downloadAnchorNode.setAttribute('download', 'export.json')
         downloadAnchorNode.style.display = 'none'
         document.body.appendChild(downloadAnchorNode)
         downloadAnchorNode.click()
         document.body.removeChild(downloadAnchorNode)
+      },
+
+      async exportNetlist () {
+        const model = this.$store.state.graph.model
+        const root = model.root
+        const firstLayer = root.children[0]
+        let vertices = model.getChildCells(firstLayer, true, false)
+        vertices = vertices === null ? [] : vertices
+        console.log(vertices)
+
+        const result = vertices.map(vertex => {
+          const nets = vertex.edges !== null ? vertex.edges.map(edge => edge.id) : []
+          return {
+            id: vertex.id,
+            name: vertex.value.name,
+            component: vertex.value.componentName,
+            nets
+          }
+        })
+        console.log(result)
+
+        const netlist = vertices.reduce((acc, vertex) => {
+          // const nets = vertex.edges !== null ? vertex.edges.map(edge => edge.id) : []
+          return acc + `\n${vertex.id} ${vertex.value.name}`
+        }, '')
+        console.log(netlist)
       }
     }
   }
@@ -172,24 +204,24 @@
     user-select: none;
   }
 
-  .menu .menu-item {
+  .menu .menu__title {
+    display: inline-block;
+    padding: 0.8rem 0.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: rgba(255,255,255,.80);
+  }
+
+  .menu .menu__item {
     display: inline-block;
     padding: 0.8rem 0.5rem;
     font-size: 1.2rem;
     color: rgba(255,255,255,.5);
   }
 
-  .menu .menu-item:hover {
+  .menu .menu__item:hover {
     cursor: pointer;
     color: rgba(255,255,255,.75);
     background-color: #464f55;
-  }
-
-  .menu .menu-title {
-    display: inline-block;
-    padding: 0.8rem 0.5rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: rgba(255,255,255,.80);
   }
 </style>
