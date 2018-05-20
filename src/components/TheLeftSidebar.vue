@@ -11,8 +11,15 @@
 
       <div class="ml-auto">
         <div class="menu__item"
-             title="New">
+             title="New"
+             @click="newProject()">
           <span class="oi oi-document"></span>
+        </div>
+
+        <div class="menu__item"
+             title="Open"
+             @click="showOpenProjectModal = true">
+          <span class="oi oi-folder"></span>
         </div>
 
         <div class="menu__item"
@@ -27,10 +34,10 @@
           <span class="oi oi-arrow-thick-right"></span>
         </div>
 
-        <div class="menu__item"
-             title="Settings">
-          <span class="oi oi-cog"></span>
-        </div>
+        <!--<div class="menu__item"-->
+             <!--title="Settings">-->
+          <!--<span class="oi oi-cog"></span>-->
+        <!--</div>-->
       </div>
     </div>
 
@@ -74,6 +81,8 @@
       </div>
     </div>
 
+    <OpenProjectModal v-model="showOpenProjectModal"></OpenProjectModal>
+
     <TheLibrariesModal></TheLibrariesModal>
   </div>
 </template>
@@ -82,14 +91,17 @@
   import uuid from 'uuid/v4'
 
   import { Bus } from '../Bus'
+  import OpenProjectModal from './OpenProjectModal'
   import TheLibrariesModal from './TheLibrariesModal'
 
   export default {
     name: 'TheLeftSidebar',
-    components: { TheLibrariesModal },
+    components: { OpenProjectModal, TheLibrariesModal },
 
     data () {
-      return {}
+      return {
+        showOpenProjectModal: false
+      }
     },
 
     computed: {
@@ -103,6 +115,11 @@
     },
 
     methods: {
+      newProject () {
+        // TODO: ask to save
+        Bus.$emit('create-new-project')
+      },
+
       selectLibrary (library) {
         if (!library.thumbnails) {
           Bus.$emit('prepare-thumbnails', library)

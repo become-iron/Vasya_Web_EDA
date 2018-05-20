@@ -7,7 +7,7 @@ import VueResource from 'vue-resource'
 import BootstrapVue from 'bootstrap-vue'
 
 import App from './App'
-import store from './store/graph'
+import store from './store'
 
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-vue/dist/bootstrap-vue.min.css'

@@ -12,7 +12,7 @@
     "deploy": "node ./node_modules/vue-gh-pages/index.js"
   },
   "dependencies": {
-    "bootstrap-vue": "^2.0.0-rc.6",
+    "bootstrap-vue": "^2.0.0-rc.11",
     "jjgraph": "^3.8.0",
     "keycode": "^2.1.9",
     "open-iconic": "^1.1.1",

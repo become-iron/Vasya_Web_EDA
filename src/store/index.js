@@ -7,8 +7,8 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    // editor: null,  // mxEditor
-    // graph: null,  // mxGraph
+    editor: undefined,  // mxEditor
+    graph: undefined,  // mxGraph
 
     zoom: 100,  // actual zoom in percents
     canUndo: false,
@@ -31,8 +31,8 @@ export default new Vuex.Store({
       state.editor = editor
     },
 
-    setGraph (state, graph) {
-      state.graph = graph
+    setGraph (state, index) {
+      state.graph = index
     },
 
     setZoom (state, zoom) {
@@ -69,6 +69,7 @@ export default new Vuex.Store({
   },
 
   actions: {
+    // TODO: change zoom logic
     zoomIn ({ state, dispatch }) {
       state.graph.zoomIn()
       dispatch('updateZoomState')
@@ -84,6 +85,7 @@ export default new Vuex.Store({
       dispatch('updateZoomState')
     },
 
+    // for internal use only
     updateZoomState ({ state, commit }) {
       commit('setZoom', Math.floor(state.graph.view.scale * 100))
     },
@@ -100,6 +102,7 @@ export default new Vuex.Store({
       state.editor.redo()
     },
 
+    // for internal use only
     updateUndoManagerState ({ state, commit }) {
       commit('setCanUndo', state.editor.undoManager.canUndo())
       commit('setCanRedo', state.editor.undoManager.canRedo())

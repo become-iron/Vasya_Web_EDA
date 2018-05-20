@@ -18,30 +18,21 @@
 
     computed: {
       editor: {
-        get () {
-          return this.$store.state.editor
-        },
-        set (editor) {
-          this.$store.commit('setEditor', editor)
-        }
+        get () { return this.$store.state.editor },
+        set (editor) { this.$store.commit('setEditor', editor) }
       },
 
       graph: {
-        get () {
-          return this.$store.state.graph
-        },
-        set (graph) {
-          this.$store.commit('setGraph', graph)
-        }
+        get () { return this.$store.state.graph },
+        set (graph) { this.$store.commit('setGraph', graph) }
       },
 
-      keyHandler () {
-        return this.$store.state.editor.keyHandler
-      }
+      keyHandler () { return this.$store.state.editor.keyHandler }
     },
 
     mounted () {
       let $container = this.$el
+      // TODO: replace with HTML5 grid
       $container.style.backgroundImage = `url(${window.mxBasePath}/images/grid.gif)`  // setup grid
 
       this.setStyleOverrides()
@@ -147,24 +138,24 @@
         }
 
         // Adds oval markers for edge-to-edge connections.
-        const getCellStyle = mxgraph.mxGraph.prototype.getCellStyle;
+        const getCellStyle = mxgraph.mxGraph.prototype.getCellStyle
         mxgraph.mxGraph.prototype.getCellStyle = function(cell) {
-          let style = getCellStyle.apply(this, arguments);
+          let style = getCellStyle.apply(this, arguments)
 
           if (style != null && this.model.isEdge(cell)) {
-            style = mxgraph.mxUtils.clone(style);
+            style = mxgraph.mxUtils.clone(style)
 
             if (this.model.isEdge(this.model.getTerminal(cell, true))) {
-              style['startArrow'] = 'oval';
+              style['startArrow'] = 'oval'
             }
 
             if (this.model.isEdge(this.model.getTerminal(cell, false))) {
-              style['endArrow'] = 'oval';
+              style['endArrow'] = 'oval'
             }
           }
 
-          return style;
-        };
+          return style
+        }
       },
 
       setListeners () {
@@ -176,7 +167,6 @@
         this.editor.addListener(mxgraph.mxEvent.ESCAPE, () => { this.graph.clearSelection() })  // deselect on Esc
 
         // rotate on Space
-        // FIXME
         // this.keyHandler.handler.bindKey(keycode('space'), () => { this.rotateSelectedCells() })
 
         this.keyHandler.handler.bindKey(keycode('left'), () => { this.moveSelectedCells(-1, 0) })
@@ -211,6 +201,8 @@
           this.handleComponentsSelection(newSelection, previousSelection)
         })
 
+        Bus.$on('create-new-project', () => { this.createNewProject() })
+        Bus.$on('open-project', projectDescription => { this.openProject(projectDescription) })
         Bus.$on('prepare-thumbnails', library => { this.prepareThumbnails(library) })
         Bus.$on(
           'insert-shape',
@@ -272,6 +264,7 @@
         this.graph.moveCells(selectedCells, dx, dy)
       },
 
+      // FIXME: doesn't work
       // rotateSelectedCells () {
       //   // TODO: continuously increases 'rotation' in cell style
       //   const selectedCells = this.graph.getSelectionCells()
@@ -283,6 +276,26 @@
       //   this.graph.model.endUpdate()
       // },
 
+      /** Resets graph model and other application properties */
+      createNewProject () {
+        this.graph.getModel().clear()
+        this.editor.resetHistory()
+        this.$store.dispatch('updateUndoManagerState')
+        this.$store.dispatch('zoomReset')
+      },
+
+      // FIXME: doesn't work for some reason
+      /** Takes project description and applies graph model from it */
+      openProject (projectDescription) {
+        // TODO: load libraries for project
+        const scheme = projectDescription.scheme
+        const doc = mxgraph.mxUtils.parseXml(scheme)
+        const root = doc.documentElement
+        const dec = new mxgraph.mxCodec(root.ownerDocument)
+        dec.decode(root, this.graph.getModel())
+      },
+
+      /** Handles cells selection */
       handleComponentsSelection (selected, deselected) {
         // TODO: consider edges selection
         const deselectedComponents = deselected.filter(cell => cell.vertex)
@@ -306,15 +319,14 @@
 
         // first load stencils
         if (noComponents) {
+          // TODO: take out loading in other function
           const req = mxgraph.mxUtils.load(library.url)
           const root = req.getDocumentElement()
 
-          let components = []
+          const components = []
 
           root.childNodes.forEach(shape => {
-            if (shape.nodeType !== mxgraph.mxConstants.NODETYPE_ELEMENT) {
-              return
-            }
+            if (shape.nodeType !== mxgraph.mxConstants.NODETYPE_ELEMENT) { return }
 
             const stencilName = shape.getAttribute('name')
             const stencil = new mxgraph.mxStencil(shape)
@@ -340,7 +352,6 @@
             this.$set(component, 'el', thumbnail)
           })
         }
-
       },
 
       prepareThumbnailByStencil (stencilName, stencil) {
@@ -378,6 +389,7 @@
         return graph.container.innerHTML
       },
 
+      // TODO: change function signature: it should take a component object and its coordinates
       addComponentByStencil (stencilName, shapeValue='', coords) {
         const parent = this.graph.getDefaultParent()
         const model = this.graph.model
